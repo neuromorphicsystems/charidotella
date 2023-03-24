@@ -33,7 +33,7 @@ pip3 install -r requirements.txt
 python3 render.py configure /path/to/recordings/directory
 ```
 
-2. Edit _render-configuration.toml_
+2. Edit the generated _render-configuration.toml_
 
 3. Run the configured tasks
 
