@@ -1,15 +1,22 @@
-Render is a toolbox to sort and visualise Event Stream (.es) data.
+Render is a toolbox to organise and visualise Event Stream (.es) recordings.
 
 ## Install render
 
-1. Install the dependencies for your platform for command_line_tools: https://github.com/neuromorphic-paris/command_line_tools#dependencies
-
-2. Compile command_line_tools
+1. Clone this repository (notice the `--recursive` flag)
 
 ```sh
 git clone --recursive https://github.com/neuromorphicsystems/render
-cd command_line_tools
+```
+
+2. Install the dependencies for your platform for command_line_tools (see https://github.com/neuromorphic-paris/command_line_tools#dependencies)
+
+3. Compile command_line_tools
+
+```sh
+cd render/command_line_tools
 premake4 gmake
+cd build
+make
 ```
 
 3. Install Python dependencies
