@@ -39,6 +39,8 @@ def run(
             / "es_to_frames"
         ),
         f"--input={str(input)}",
+        f"--begin={begin}",
+        f"--end={end}",
         f"--frametime={parameters['frametime']}",
         f"--style={parameters['style']}",
         f"--tau={parameters['tau']}",

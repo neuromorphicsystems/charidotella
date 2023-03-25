@@ -21,6 +21,8 @@ def run(
             / "event_rate",
             str(input),
             str(output),
+            f"--begin={begin}",
+            f"--end={end}",
             f"--long={parameters['long_tau']}",
             f"--short={parameters['short_tau']}",
             f"--width={parameters['width']}",

@@ -82,6 +82,7 @@ task_run = typing.Callable[
         pathlib.Path,
         pathlib.Path,
         int,
+        int,
         dict[str, typing.Any],
     ],
     None,
@@ -226,8 +227,8 @@ if args.command == "configure":
         jobs.append(
             {
                 "name": name,
-                "begin": timestamp_to_timecode(0),
-                "end": timestamp_to_timecode(end - begin),
+                "begin": timestamp_to_timecode(begin),
+                "end": timestamp_to_timecode(end),
                 "filters": ["default"],
                 "tasks": [
                     "colourtime-viridis",
@@ -248,13 +249,13 @@ if args.command == "configure":
             {
                 "filters": {
                     "default": {"type": "default", "icon": "⏳", "suffix": ""},
-                    "arbiter_saturation": {
+                    "arbiter-saturation": {
                         "type": "arbiter_saturation",
                         "icon": "🌩 ",
                         "suffix": "as20",
                         "threshold": 20,
                     },
-                    "hot_pixels": {
+                    "hot-pixels": {
                         "type": "hot_pixels",
                         "icon": "🌶",
                         "suffix": "hp3",
@@ -504,7 +505,8 @@ if args.command == "run":
                 TASKS[task["type"]][1](
                     output_path,
                     with_suffix(task_output_path, ".part"),
-                    end - begin,
+                    begin,
+                    end,
                     task["parameters"],
                 )
                 with_suffix(task_output_path, ".part").rename(task_output_path)
