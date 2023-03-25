@@ -9,7 +9,8 @@ EXTENSION = ".mp4"
 def run(
     input: pathlib.Path,
     output: pathlib.Path,
-    duration: int,
+    begin: int,
+    end: int,
     parameters: dict[str, typing.Any],
 ):
     width, height = (

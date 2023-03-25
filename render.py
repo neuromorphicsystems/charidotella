@@ -319,7 +319,7 @@ if args.command == "configure":
             encoder=Encoder(),
         )
         configuration_file.write(
-            "\n\n# jobs\n# the same source file can be used in multiple jobs if begin and end are different\n\n"
+            "\n\n# jobs\n# the same source file can be used in multiple jobs if begin, end, or filters are different\n\n"
         )
         toml.dump(
             {"jobs": jobs},

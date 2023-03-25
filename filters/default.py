@@ -34,5 +34,4 @@ def apply(
                     events = packet[packet["t"] < end]
                 else:
                     events = packet
-                events["t"] -= begin
                 encoder.write(events)

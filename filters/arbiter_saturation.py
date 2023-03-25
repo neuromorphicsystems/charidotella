@@ -73,7 +73,6 @@ def apply(
                     events = packet[packet["t"] < end]
                 else:
                     events = packet
-                events["t"] -= begin
                 events_packets.append(events)
                 if events["t"][-1] > events_packets[0]["t"][0]:
                     events_packets, events, count = consume_packets(

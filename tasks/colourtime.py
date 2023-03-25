@@ -12,19 +12,21 @@ EXTENSION = ".png"
 def run(
     input: pathlib.Path,
     output: pathlib.Path,
-    duration: int,
+    begin: int,
+    end: int,
     parameters: dict[str, typing.Any],
 ):
     if "cycle" in parameters:
         time_mapping = colourtime.generate_cyclic_time_mapping(
-            duration=parameters["cycle"], begin=0
+            duration=parameters["cycle"],
+            begin=begin,
         )
     else:
-        time_mapping = colourtime.generate_linear_time_mapping(begin=0, end=duration)
+        time_mapping = colourtime.generate_linear_time_mapping(begin=begin, end=end)
     with event_stream.Decoder(input) as decoder:
         image = colourtime.convert(
-            begin=None,
-            end=None,
+            begin=begin,
+            end=end,
             width=decoder.width,
             height=decoder.height,
             decoder=decoder,
