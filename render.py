@@ -1,8 +1,10 @@
 import argparse
+import copy
 import json
 import os
 import pathlib
 import re
+import shutil
 import sys
 import tempfile
 import typing
@@ -55,6 +57,19 @@ run_parser.add_argument(
     "-f",
     action="store_true",
     help="Replace files that already exist",
+)
+resolve_parser = subparsers.add_parser("resolve", help="Apply generators for debugging")
+resolve_parser.add_argument(
+    "--configuration",
+    "-c",
+    default="render-configuration.toml",
+    help="Render configuration file path",
+)
+resolve_parser.add_argument(
+    "--output",
+    "-o",
+    default="render-configuration-resolved.json",
+    help="Resolved render configuration file path",
 )
 args = parser.parse_args()
 
@@ -164,6 +179,58 @@ class Encoder(toml.TomlEncoder):
     def dump_list(self, v):
         return f"[{', '.join(str(self.dump_value(u)) for u in v)}]"
 
+    def dump_sections(self, o, sup):
+        retstr = ""
+        if sup != "" and sup[-1] != ".":
+            sup += "."
+        retdict = self._dict()
+        arraystr = ""
+        for section in o:
+            section = str(section)
+            qsection = section
+            if not re.match(r"^[A-Za-z0-9_-]+$", section):
+                qsection = toml.encoder._dump_str(section)  # type: ignore
+            if not isinstance(o[section], dict):
+                arrayoftables = False
+                if isinstance(o[section], list):
+                    for a in o[section]:
+                        if isinstance(a, dict):
+                            arrayoftables = True
+                if arrayoftables:
+                    for index, a in enumerate(o[section]):
+                        arraytabstr = ""
+                        arraystr += f"\n[[{sup}{qsection}]]\n"
+                        s, d = self.dump_sections(a, sup + qsection)
+                        if s:
+                            if s[0] == "[":
+                                arraytabstr += s
+                            else:
+                                arraystr += s
+                        while d:
+                            newd = self._dict()
+                            for dsec in d:
+                                s1, d1 = self.dump_sections(
+                                    d[dsec], sup + qsection + "." + dsec
+                                )
+                                if s1:
+                                    arraytabstr += (
+                                        "[" + sup + qsection + "." + dsec + "]\n"
+                                    )
+                                    arraytabstr += s1
+                                for s1 in d1:
+                                    newd[dsec + "." + s1] = d1[s1]
+                            d = newd
+                        arraystr += arraytabstr
+                else:
+                    if o[section] is not None:
+                        retstr += (
+                            qsection + " = " + str(self.dump_value(o[section])) + "\n"
+                        )
+            else:
+                retdict[qsection] = o[section]
+        retstr += arraystr
+        return (retstr, retdict)
+
 
 def render_configuration_schema():
     with open(
@@ -195,16 +262,105 @@ def compare_parameters(a: dict[str, typing.Any], b: dict[str, typing.Any]):
     )
 
 
+def recursive_replace(
+    template: dict[str, typing.Any], parameter_name: str, parameter_value: typing.Any
+):
+    for key, value in template.items():
+        if isinstance(value, str):
+            if value == f"@raw({parameter_name})":
+                template[key] = parameter_value
+            else:
+                template[key] = value.replace(
+                    f"@{parameter_name}", str(parameter_value)
+                )
+        elif isinstance(value, dict):
+            recursive_replace(
+                template=value,
+                parameter_name=parameter_name,
+                parameter_value=parameter_value,
+            )
+
+
+def run_generators(configuration: dict[str, typing.Any]):
+    for key, generator_key in (
+        ("filters", "filters-generators"),
+        ("tasks", "tasks-generators"),
+        ("jobs", "jobs-generators"),
+    ):
+        if generator_key in configuration:
+            for generator in configuration[generator_key]:
+                values_counts = [
+                    len(values) for values in generator["parameters"].values()
+                ]
+                if len(values_counts) == 0:
+                    error(
+                        f"{key} generator \"{generator['template']['name']}\" has no parameters"
+                    )
+                if not all(
+                    values_count == values_counts[0] for values_count in values_counts
+                ):
+                    error(
+                        f"the parameters in {key} generator \"{generator['template']['name']}\" have different numbers of values"
+                    )
+                parameters_names_and_values = sorted(
+                    generator["parameters"].items(),
+                    key=lambda key_and_value: -len(key_and_value[0]),
+                )
+                for parameters_values in zip(
+                    *(values for _, values in parameters_names_and_values)
+                ):
+                    generated_entry = copy.deepcopy(generator["template"])
+                    if key == "jobs":
+                        generated_entry_name = None
+                    else:
+                        generated_entry_name = generated_entry["name"]
+                        del generated_entry["name"]
+                    for parameter_name, parameter_value in zip(
+                        (name for name, _ in parameters_names_and_values),
+                        parameters_values,
+                    ):
+                        if key != "jobs":
+                            assert generated_entry_name is not None
+                            generated_entry_name = generated_entry_name.replace(
+                                f"@{parameter_name}", str(parameter_value)
+                            )
+                        recursive_replace(
+                            template=generated_entry,
+                            parameter_name=parameter_name,
+                            parameter_value=parameter_value,
+                        )
+                    if key == "jobs":
+                        configuration[key].append(generated_entry)
+                    else:
+                        if generated_entry_name in configuration[key]:
+                            error(
+                                f"the {key} generator \"{generator['template']['name']}\" created an entry whose name (\"{generated_entry_name}\") already exists"
+                            )
+                        configuration[key][generated_entry_name] = generated_entry
+            del configuration[generator_key]
+
+
 if args.command == "configure":
     configuration_path = pathlib.Path(args.configuration).resolve()
     if not args.force and configuration_path.is_file():
         error(f'"{configuration_path}" already exists (use --force to override it)')
     directory = pathlib.Path(args.directory).resolve()
+    if not directory.is_dir():
+        error(f'"{directory}" does not exist or is not a directory')
     paths = list(directory.rglob("*.es"))
     paths.sort(key=lambda path: (path.stem, path.parent))
     if len(paths) == 0:
-        error('no .es files found in "{directory}"')
+        error(f'no .es files found in "{directory}"')
     names = animals.generate_names(len(paths))
+    attachments: dict[str, list[dict[str, str]]] = {}
+    for name, path in zip(names, paths):
+        for sibling in path.parent.iterdir():
+            if sibling != path and sibling.stem == path.stem:
+                if not name in attachments:
+                    attachments[name] = []
+                attachments[name].append(
+                    {"source": str(sibling), "target": f"{name}{sibling.suffix}"}
+                )
     jobs = []
     for index, (name, path) in enumerate(zip(names, paths)):
         info(
@@ -230,18 +386,12 @@ if args.command == "configure":
                 "begin": timestamp_to_timecode(begin),
                 "end": timestamp_to_timecode(end),
                 "filters": ["default"],
-                "tasks": [
-                    "colourtime-viridis",
-                    "colourtime-prism",
-                    "event-rate",
-                    "video",
-                ],
+                "tasks": ["colourtime-.+", "event-rate-.+", "video-real-time"],
             }
         )
     with open(with_suffix(configuration_path, ".part"), "w") as configuration_file:
         configuration_file.write("# output directory\n")
         toml.dump({"directory": "renders"}, configuration_file, encoder=Encoder())
-
         configuration_file.write(
             "\n\n# filters configuration (filters are applied before tasks)\n\n"
         )
@@ -249,19 +399,42 @@ if args.command == "configure":
             {
                 "filters": {
                     "default": {"type": "default", "icon": "⏳", "suffix": ""},
-                    "arbiter-saturation": {
-                        "type": "arbiter_saturation",
-                        "icon": "🌩 ",
-                        "suffix": "as20",
-                        "threshold": 20,
-                    },
-                    "hot-pixels": {
-                        "type": "hot_pixels",
-                        "icon": "🌶",
-                        "suffix": "hp3",
-                        "ratio": 3.0,
-                    },
                 }
+            },
+            configuration_file,
+            encoder=Encoder(),
+        )
+        configuration_file.write(
+            "\n\n# filters generators (advanced filter generation with templates)\n"
+        )
+        toml.dump(
+            {
+                "filters-generators": [
+                    {
+                        "parameters": {
+                            "threshold": [1, 5, 10, 15, 30, 45, 90, 180, 360, 720],
+                        },
+                        "template": {
+                            "name": "arbiter-saturation-@threshold",
+                            "type": "arbiter_saturation",
+                            "icon": "🌩 ",
+                            "suffix": "as@threshold",
+                            "threshold": "@raw(threshold)",
+                        },
+                    },
+                    {
+                        "parameters": {
+                            "ratio": [1.0, 2.0, 3.0, 5.0, 10.0],
+                        },
+                        "template": {
+                            "name": "hot-pixels-@ratio",
+                            "type": "hot_pixels",
+                            "icon": "🌶",
+                            "suffix": "hp@ratio",
+                            "ratio": "@raw(ratio)",
+                        },
+                    },
+                ]
             },
             configuration_file,
             encoder=Encoder(),
@@ -271,36 +444,7 @@ if args.command == "configure":
         toml.dump(
             {
                 "tasks": {
-                    "colourtime-viridis": {
-                        "type": "colourtime",
-                        "icon": "🎨",
-                        "colormap": "viridis",
-                        "alpha": 0.1,
-                        "png_compression_level": 6,
-                        "background_color": "#191919",
-                    },
-                    "colourtime-prism": {
-                        "type": "colourtime",
-                        "icon": "🎨",
-                        "colormap": "prism",
-                        "alpha": 0.1,
-                        "png_compression_level": 6,
-                        "background_color": "#191919",
-                    },
-                    "event-rate": {
-                        "type": "event_rate",
-                        "icon": "🎢",
-                        "long_tau": timestamp_to_timecode(1000000),
-                        "short_tau": timestamp_to_timecode(10000),
-                        "long_tau_color": "#4285F4",
-                        "short_tau_color": "#C4D7F5",
-                        "axis_color": "#000000",
-                        "main_grid_color": "#555555",
-                        "secondary_grid_color": "#DDDDDD",
-                        "width": 1280,
-                        "height": 720,
-                    },
-                    "video": {
+                    "video-real-time": {
                         "type": "video",
                         "icon": "🎬",
                         "frametime": timestamp_to_timecode(20000),
@@ -319,16 +463,122 @@ if args.command == "configure":
             configuration_file,
             encoder=Encoder(),
         )
+
         configuration_file.write(
-            "\n\n# jobs\n# the same source file can be used in multiple jobs if begin, end, or filters are different\n\n"
+            "\n\n# tasks generators (advanced task generation with templates)\n"
+        )
+        toml.dump(
+            {
+                "tasks-generators": [
+                    {
+                        "parameters": {
+                            "colormap": ["viridis", "prism"],
+                        },
+                        "template": {
+                            "name": "colourtime-@colormap",
+                            "type": "colourtime",
+                            "icon": "🎨",
+                            "colormap": "@colormap",
+                            "alpha": 0.1,
+                            "png_compression_level": 6,
+                            "background_color": "#191919",
+                        },
+                    },
+                    {
+                        "parameters": {
+                            "suffix": ["100000-10000", "1000-100"],
+                            "long_tau": [
+                                timestamp_to_timecode(100000),
+                                timestamp_to_timecode(10000),
+                            ],
+                            "short_tau": [
+                                timestamp_to_timecode(1000),
+                                timestamp_to_timecode(100),
+                            ],
+                        },
+                        "template": {
+                            "name": "event-rate-@suffix",
+                            "type": "event_rate",
+                            "icon": "🎢",
+                            "long_tau": "@long_tau",
+                            "short_tau": "@short_tau",
+                            "long_tau_color": "#4285F4",
+                            "short_tau_color": "#C4D7F5",
+                            "axis_color": "#000000",
+                            "main_grid_color": "#555555",
+                            "secondary_grid_color": "#DDDDDD",
+                            "width": 1920,
+                            "height": 1080,
+                        },
+                    },
+                ]
+            },
+            configuration_file,
+            encoder=Encoder(),
+        )
+
+        configuration_file.write(
+            "\n\n# jobs (source + filters + tasks)\n# the same source file can be used in multiple jobs if begin, end, or filters are different\n#\n"
         )
         toml.dump(
             {"jobs": jobs},
             configuration_file,
             encoder=Encoder(),
         )
+        configuration_file.write(
+            "\n\n# jobs generators (advanced job generation with templates)\n#\n"
+        )
+        configuration_file.write(
+            "\n".join(
+                f"# {line}"
+                for line in toml.dumps(
+                    {
+                        "jobs-generators": [
+                            {
+                                "parameters": {
+                                    "threshold": [
+                                        1,
+                                        5,
+                                        10,
+                                        15,
+                                        30,
+                                        45,
+                                        90,
+                                        180,
+                                        360,
+                                        720,
+                                    ],
+                                },
+                                "template": {
+                                    "name": "job-name",
+                                    "begin": "job-begin",
+                                    "end": "job-end",
+                                    "filters": ["arbiter-saturation-@threshold"],
+                                    "tasks": [
+                                        "colourtime-.+",
+                                        "event-rate-.+",
+                                        "video-real-time",
+                                    ],
+                                },
+                            }
+                        ]
+                    },
+                    encoder=Encoder(),
+                ).split("\n")
+                if len(line) > 0
+            )
+        )
+        configuration_file.write("\n\n# generated name to source file\n")
         toml.dump(
             {"sources": {name: str(path) for name, path in zip(names, paths)}},
+            configuration_file,
+            encoder=Encoder(),
+        )
+        configuration_file.write(
+            "\n\n# attachments are copied in target directories, algonside generated files \n"
+        )
+        toml.dump(
+            {"attachments": attachments},
             configuration_file,
             encoder=Encoder(),
         )
@@ -345,17 +595,27 @@ if args.command == "run":
     with open(configuration_path) as configuration_file:
         configuration = toml.load(configuration_file)
     jsonschema.validate(configuration, render_configuration_schema())
+    run_generators(configuration)
+    jsonschema.validate(configuration, render_configuration_schema())
     for job in configuration["jobs"]:
         if not job["name"] in configuration["sources"]:
             error(f"\"{job['name']}\" is not listed in sources")
-        if "filters" in job:
-            for filter in job["filters"]:
-                if not filter in configuration["filters"]:
-                    error(f"unknown filter \"{filter}\" in \"{job['name']}\"")
+        for filter in job["filters"]:
+            if not filter in configuration["filters"]:
+                error(f"unknown filter \"{filter}\" in \"{job['name']}\"")
         if "tasks" in job:
+            expanded_tasks = []
             for task in job["tasks"]:
-                if not task in configuration["tasks"]:
-                    error(f"unknown task \"{task}\" in \"{job['name']}\"")
+                pattern = re.compile(task)
+                found = False
+                for task_name in configuration["tasks"].keys():
+                    if pattern.fullmatch(task_name) is not None:
+                        expanded_tasks.append(task_name)
+                        found = True
+                if not found in configuration["tasks"]:
+                    error(
+                        f"\"{task}\" in \"{job['name']}\" did not match any task names"
+                    )
         try:
             timecode(job["begin"])
         except Exception as exception:
@@ -368,6 +628,10 @@ if args.command == "run":
             error(
                 f"parsing \"end\" ({job['end']}) in \"{job['name']}\" failed ({exception})"
             )
+    for name, attachment in configuration["attachments"].items():
+        targets = [file["target"] for file in attachment]
+        if len(targets) != len(set(targets)):
+            error(f'two or more attachments share the same target in "{name}"')
     configuration["filters"] = {
         name: {
             "type": filter["type"],
@@ -404,6 +668,7 @@ if args.command == "run":
         begin = timecode(job["begin"])
         end = timecode(job["end"])
         name = f"{job['name']}-b{timestamp_to_short_timecode(begin)}-e{timestamp_to_short_timecode(end)}"
+        source = configuration["sources"][job["name"]]
         if "filters" in job and len(job["filters"]) > 0:
             for filter_name in job["filters"]:
                 if len(configuration["filters"][filter_name]["suffix"]) > 0:
@@ -418,10 +683,34 @@ if args.command == "run":
         parameters = load_parameters(parameters_path)
         if parameters is None:
             parameters = {}
+        if not "source" in parameters or parameters["source"] != source:
+            parameters = {"source": source}
+            save_parameters(parameters_path, parameters)
         if not "filters" in parameters:
             parameters["filters"] = {}
         if not "tasks" in parameters:
             parameters["tasks"] = {}
+        if not "attachments" in parameters:
+            parameters["attachments"] = {}
+        for attachment in configuration["attachments"]:
+            if (
+                not args.force
+                and attachment["target"] in parameters["attachments"]
+                and (directory / name / attachment["target"]).is_file()
+            ):
+                info(
+                    "⏭ ", f"skip copy {attachment['source']} to {attachment['target']}"
+                )
+            else:
+                info("🗃", f"copy {attachment['source']} to {attachment['target']}")
+                shutil.copy2(
+                    pathlib.Path(attachment["source"]),
+                    with_suffix(directory / name / attachment["target"], ".part"),
+                )
+                with_suffix(directory / name / attachment["target"], ".part").rename(
+                    directory / name / attachment["target"]
+                )
+            parameters["attachments"][attachment["target"]] = attachment["source"]
         if len(job["filters"]) == 1:
             filter_name = job["filters"][0]
             filter = configuration["filters"][filter_name]
@@ -516,3 +805,13 @@ if args.command == "run":
         if index < len(configuration["jobs"]) - 1:
             sys.stdout.write("\n")
     sys.exit(0)
+
+if args.command == "resolve":
+    configuration_path = pathlib.Path(args.configuration).resolve()
+    with open(configuration_path) as configuration_file:
+        configuration = toml.load(configuration_file)
+    jsonschema.validate(configuration, render_configuration_schema())
+    run_generators(configuration)
+    jsonschema.validate(configuration, render_configuration_schema())
+    with open(pathlib.Path(args.output), "w") as output_file:
+        json.dump(configuration, output_file, indent=4)

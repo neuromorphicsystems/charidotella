@@ -114,7 +114,6 @@ def generate_names(count: int):
     generator = coolname.RandomGenerator(config)
     coolname_length = 4
     for length in (2, 3):
-        print(generator.get_combinations_count(length))
         if count < generator.get_combinations_count(length) / 2:
             coolname_length = length
             break
