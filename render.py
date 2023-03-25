@@ -568,7 +568,7 @@ if args.command == "configure":
                 if len(line) > 0
             )
         )
-        configuration_file.write("\n\n# generated name to source file\n")
+        configuration_file.write("\n\n\n# generated name to source file\n")
         toml.dump(
             {"sources": {name: str(path) for name, path in zip(names, paths)}},
             configuration_file,
