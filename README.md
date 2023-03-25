@@ -63,7 +63,9 @@ python3 render.py run
 
 4. Modifiy _render-configuration.toml_ again (for instance, add new tasks and jobs). `python3 render.py run` skips already completed tasks and only runs only the new ones (unless the flag `--force` is used).
 
-## Format and lint
+## Contribute to render
+
+After code edits, run the formatters and linters.
 
 ```
 isort .; black .; pyright .
