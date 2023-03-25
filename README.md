@@ -25,6 +25,26 @@ make
 pip3 install -r requirements.txt
 ```
 
+4. Install FFmpeg
+
+-   **Debian/Ubuntu**
+
+```sh
+apt install ffmpeg
+```
+
+-   **macOS**
+
+```sh
+brew install ffmpeg
+```
+
+-   **Windows**
+
+```sh
+choco install ffmpeg
+```
+
 ## Use render
 
 1.  Generate a configuration file
@@ -40,6 +60,8 @@ python3 render.py configure /path/to/recordings/directory
 ```sh
 python3 render.py run
 ```
+
+4. Modifiy _render-configuration.toml_ again (for instance, add new tasks and jobs). `python3 render.py run` skips already completed tasks and only runs only the new ones (unless the flag `--force` is used).
 
 ## Format and lint
 
