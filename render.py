@@ -449,7 +449,7 @@ if args.command == "configure":
                         "icon": "🎬",
                         "frametime": timestamp_to_timecode(20000),
                         "tau": timestamp_to_timecode(200000),
-                        "style": "exponential",
+                        "style": "cumulative",
                         "on_color": "#F4C20D",
                         "off_color": "#1E88E5",
                         "idle_color": "#191919",
@@ -489,10 +489,10 @@ if args.command == "configure":
                             "suffix": ["100000-10000", "1000-100"],
                             "long_tau": [
                                 timestamp_to_timecode(100000),
-                                timestamp_to_timecode(10000),
+                                timestamp_to_timecode(1000),
                             ],
                             "short_tau": [
-                                timestamp_to_timecode(1000),
+                                timestamp_to_timecode(10000),
                                 timestamp_to_timecode(100),
                             ],
                         },
@@ -612,10 +612,11 @@ if args.command == "run":
                     if pattern.fullmatch(task_name) is not None:
                         expanded_tasks.append(task_name)
                         found = True
-                if not found in configuration["tasks"]:
+                if not found:
                     error(
-                        f"\"{task}\" in \"{job['name']}\" did not match any task names"
+                        f"\"{task}\" in \"{job['name']}\" did not match any task names ({', '.join(configuration['tasks'].keys())})"
                     )
+            job["tasks"] = expanded_tasks
         try:
             timecode(job["begin"])
         except Exception as exception:
@@ -692,25 +693,27 @@ if args.command == "run":
             parameters["tasks"] = {}
         if not "attachments" in parameters:
             parameters["attachments"] = {}
-        for attachment in configuration["attachments"]:
-            if (
-                not args.force
-                and attachment["target"] in parameters["attachments"]
-                and (directory / name / attachment["target"]).is_file()
-            ):
-                info(
-                    "⏭ ", f"skip copy {attachment['source']} to {attachment['target']}"
-                )
-            else:
-                info("🗃", f"copy {attachment['source']} to {attachment['target']}")
-                shutil.copy2(
-                    pathlib.Path(attachment["source"]),
-                    with_suffix(directory / name / attachment["target"], ".part"),
-                )
-                with_suffix(directory / name / attachment["target"], ".part").rename(
-                    directory / name / attachment["target"]
-                )
-            parameters["attachments"][attachment["target"]] = attachment["source"]
+        if job["name"] in configuration["attachments"]:
+            for attachment in configuration["attachments"][job["name"]]:
+                if (
+                    not args.force
+                    and attachment["target"] in parameters["attachments"]
+                    and (directory / name / attachment["target"]).is_file()
+                ):
+                    info(
+                        "⏭ ",
+                        f"skip copy {attachment['source']} → {attachment['target']}",
+                    )
+                else:
+                    info("🗃 ", f"copy {attachment['source']} → {attachment['target']}")
+                    shutil.copy2(
+                        pathlib.Path(attachment["source"]),
+                        with_suffix(directory / name / attachment["target"], ".part"),
+                    )
+                    with_suffix(
+                        directory / name / attachment["target"], ".part"
+                    ).rename(directory / name / attachment["target"])
+                parameters["attachments"][attachment["target"]] = attachment["source"]
         if len(job["filters"]) == 1:
             filter_name = job["filters"][0]
             filter = configuration["filters"][filter_name]
