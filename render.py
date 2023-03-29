@@ -1,7 +1,6 @@
 import argparse
 import copy
 import json
-import os
 import pathlib
 import re
 import shutil
@@ -20,6 +19,8 @@ import filters.default
 import tasks.colourtime
 import tasks.event_rate
 import tasks.video
+import tasks.wiggle
+import utilities
 
 parser = argparse.ArgumentParser(
     description="Process Event Stream files",
@@ -74,8 +75,6 @@ resolve_parser.add_argument(
 args = parser.parse_args()
 
 
-TIMECODE_PATTERN = re.compile(r"^(\d+):(\d+):(\d+)(?:\.(\d+))?$")
-
 filter_apply = typing.Callable[
     [
         pathlib.Path,
@@ -108,71 +107,6 @@ TASKS: dict[str, tuple[str, task_run]] = {
     "event_rate": (tasks.event_rate.EXTENSION, tasks.event_rate.run),
     "video": (tasks.video.EXTENSION, tasks.video.run),
 }
-
-ANSI_COLORS_ENABLED = os.getenv("ANSI_COLORS_DISABLED") is None
-
-
-def format_bold(message: str) -> str:
-    if ANSI_COLORS_ENABLED:
-        return f"\033[1m{message}\033[0m"
-    return message
-
-
-def info(icon: str, message: str):
-    sys.stdout.write(f"{icon} {message}\n")
-    sys.stdout.flush()
-
-
-def error(message: str):
-    sys.stderr.write(f"❌ {message}\n")
-    sys.exit(1)
-
-
-def timestamp_to_timecode(timestamp: int):
-    hours = timestamp // (60 * 60 * 1000000)
-    timestamp -= hours * 60 * 60 * 1000000
-    minutes = timestamp // (60 * 1000000)
-    timestamp -= minutes * 60 * 1000000
-    seconds = timestamp // 1000000
-    timestamp -= seconds * 1000000
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{timestamp:06d}"
-
-
-def timestamp_to_short_timecode(timestamp: int):
-    hours = timestamp // (60 * 60 * 1000000)
-    timestamp -= hours * 60 * 60 * 1000000
-    minutes = timestamp // (60 * 1000000)
-    timestamp -= minutes * 60 * 1000000
-    seconds = timestamp // 1000000
-    timestamp -= seconds * 1000000
-    timestamp_string = "" if timestamp == 0 else f".{timestamp:06d}".rstrip("0")
-    if hours > 0:
-        return f"{hours}:{minutes:02d}:{seconds:02d}{timestamp_string}"
-    if minutes > 0:
-        return f"{minutes}:{seconds:02d}{timestamp_string}"
-    return f"{seconds}{timestamp_string}"
-
-
-def timecode(value: str) -> int:
-    if value.isdigit():
-        return int(value)
-    match = TIMECODE_PATTERN.match(value)
-    if match is None:
-        raise argparse.ArgumentTypeError(
-            f"expected an integer or a timecode (12:34:56.789000), got {value}"
-        )
-    result = (
-        int(match[1]) * 3600000000 + int(match[2]) * 60000000 + int(match[3]) * 1000000
-    )
-    if match[4] is not None:
-        fraction_string: str = match[4]
-        if len(fraction_string) == 6:
-            result += int(fraction_string)
-        elif len(fraction_string) < 6:
-            result += int(fraction_string + "0" * (6 - len(fraction_string)))
-        else:
-            result += round(float("0." + fraction_string) * 1e6)
-    return result
 
 
 class Encoder(toml.TomlEncoder):
@@ -239,10 +173,6 @@ def render_configuration_schema():
         return json.load(schema_file)
 
 
-def with_suffix(path: pathlib.Path, suffix: str):
-    return path.parent / f"{path.name}{suffix}"
-
-
 def load_parameters(path: pathlib.Path):
     if path.is_file():
         with open(path) as file:
@@ -293,13 +223,13 @@ def run_generators(configuration: dict[str, typing.Any]):
                     len(values) for values in generator["parameters"].values()
                 ]
                 if len(values_counts) == 0:
-                    error(
+                    utilities.error(
                         f"{key} generator \"{generator['template']['name']}\" has no parameters"
                     )
                 if not all(
                     values_count == values_counts[0] for values_count in values_counts
                 ):
-                    error(
+                    utilities.error(
                         f"the parameters in {key} generator \"{generator['template']['name']}\" have different numbers of values"
                     )
                 parameters_names_and_values = sorted(
@@ -333,7 +263,7 @@ def run_generators(configuration: dict[str, typing.Any]):
                         configuration[key].append(generated_entry)
                     else:
                         if generated_entry_name in configuration[key]:
-                            error(
+                            utilities.error(
                                 f"the {key} generator \"{generator['template']['name']}\" created an entry whose name (\"{generated_entry_name}\") already exists"
                             )
                         configuration[key][generated_entry_name] = generated_entry
@@ -343,14 +273,16 @@ def run_generators(configuration: dict[str, typing.Any]):
 if args.command == "configure":
     configuration_path = pathlib.Path(args.configuration).resolve()
     if not args.force and configuration_path.is_file():
-        error(f'"{configuration_path}" already exists (use --force to override it)')
+        utilities.error(
+            f'"{configuration_path}" already exists (use --force to override it)'
+        )
     directory = pathlib.Path(args.directory).resolve()
     if not directory.is_dir():
-        error(f'"{directory}" does not exist or is not a directory')
+        utilities.error(f'"{directory}" does not exist or is not a directory')
     paths = list(directory.rglob("*.es"))
     paths.sort(key=lambda path: (path.stem, path.parent))
     if len(paths) == 0:
-        error(f'no .es files found in "{directory}"')
+        utilities.error(f'no .es files found in "{directory}"')
     names = animals.generate_names(len(paths))
     attachments: dict[str, list[dict[str, str]]] = {}
     for name, path in zip(names, paths):
@@ -363,9 +295,9 @@ if args.command == "configure":
                 )
     jobs = []
     for index, (name, path) in enumerate(zip(names, paths)):
-        info(
+        utilities.info(
             animals.composite_name_to_icon(name),
-            f'{index + 1}/{len(paths)} reading range for {format_bold(name)} ("{path}")',
+            f'{index + 1}/{len(paths)} reading range for {utilities.format_bold(name)} ("{path}")',
         )
         begin: typing.Optional[int] = None
         end: typing.Optional[int] = None
@@ -383,13 +315,15 @@ if args.command == "configure":
         jobs.append(
             {
                 "name": name,
-                "begin": timestamp_to_timecode(begin),
-                "end": timestamp_to_timecode(end),
+                "begin": utilities.timestamp_to_timecode(begin),
+                "end": utilities.timestamp_to_timecode(end),
                 "filters": ["default"],
                 "tasks": ["colourtime-.+", "event-rate-.+", "video-real-time"],
             }
         )
-    with open(with_suffix(configuration_path, ".part"), "w") as configuration_file:
+    with open(
+        utilities.with_suffix(configuration_path, ".part"), "w"
+    ) as configuration_file:
         configuration_file.write("# output directory\n")
         toml.dump({"directory": "renders"}, configuration_file, encoder=Encoder())
         configuration_file.write(
@@ -447,8 +381,8 @@ if args.command == "configure":
                     "video-real-time": {
                         "type": "video",
                         "icon": "🎬",
-                        "frametime": timestamp_to_timecode(20000),
-                        "tau": timestamp_to_timecode(200000),
+                        "frametime": utilities.timestamp_to_timecode(20000),
+                        "tau": utilities.timestamp_to_timecode(200000),
                         "style": "cumulative",
                         "on_color": "#F4C20D",
                         "off_color": "#1E88E5",
@@ -488,12 +422,12 @@ if args.command == "configure":
                         "parameters": {
                             "suffix": ["100000-10000", "1000-100"],
                             "long_tau": [
-                                timestamp_to_timecode(100000),
-                                timestamp_to_timecode(1000),
+                                utilities.timestamp_to_timecode(100000),
+                                utilities.timestamp_to_timecode(1000),
                             ],
                             "short_tau": [
-                                timestamp_to_timecode(10000),
-                                timestamp_to_timecode(100),
+                                utilities.timestamp_to_timecode(10000),
+                                utilities.timestamp_to_timecode(100),
                             ],
                         },
                         "template": {
@@ -582,12 +516,12 @@ if args.command == "configure":
             configuration_file,
             encoder=Encoder(),
         )
-    with open(with_suffix(configuration_path, ".part")) as configuration_file:
+    with open(utilities.with_suffix(configuration_path, ".part")) as configuration_file:
         jsonschema.validate(
             toml.load(configuration_file),
             render_configuration_schema(),
         )
-    with_suffix(configuration_path, ".part").rename(configuration_path)
+    utilities.with_suffix(configuration_path, ".part").rename(configuration_path)
     sys.exit(0)
 
 if args.command == "run":
@@ -599,10 +533,10 @@ if args.command == "run":
     jsonschema.validate(configuration, render_configuration_schema())
     for job in configuration["jobs"]:
         if not job["name"] in configuration["sources"]:
-            error(f"\"{job['name']}\" is not listed in sources")
+            utilities.error(f"\"{job['name']}\" is not listed in sources")
         for filter in job["filters"]:
             if not filter in configuration["filters"]:
-                error(f"unknown filter \"{filter}\" in \"{job['name']}\"")
+                utilities.error(f"unknown filter \"{filter}\" in \"{job['name']}\"")
         if "tasks" in job:
             expanded_tasks = []
             for task in job["tasks"]:
@@ -613,26 +547,28 @@ if args.command == "run":
                         expanded_tasks.append(task_name)
                         found = True
                 if not found:
-                    error(
+                    utilities.error(
                         f"\"{task}\" in \"{job['name']}\" did not match any task names ({', '.join(configuration['tasks'].keys())})"
                     )
             job["tasks"] = expanded_tasks
         try:
-            timecode(job["begin"])
+            utilities.timecode(job["begin"])
         except Exception as exception:
-            error(
+            utilities.error(
                 f"parsing \"begin\" ({job['begin']}) in \"{job['name']}\" failed ({exception})"
             )
         try:
-            timecode(job["end"])
+            utilities.timecode(job["end"])
         except Exception as exception:
-            error(
+            utilities.error(
                 f"parsing \"end\" ({job['end']}) in \"{job['name']}\" failed ({exception})"
             )
     for name, attachment in configuration["attachments"].items():
         targets = [file["target"] for file in attachment]
         if len(targets) != len(set(targets)):
-            error(f'two or more attachments share the same target in "{name}"')
+            utilities.error(
+                f'two or more attachments share the same target in "{name}"'
+            )
     configuration["filters"] = {
         name: {
             "type": filter["type"],
@@ -663,21 +599,21 @@ if args.command == "run":
         directory = directory.resolve()
     else:
         directory = (configuration_path.parent / directory).resolve()
-    info("📁", f'output directory "{directory}"\n')
+    utilities.info("📁", f'output directory "{directory}"\n')
     directory.mkdir(parents=True, exist_ok=True)
     for index, job in enumerate(configuration["jobs"]):
-        begin = timecode(job["begin"])
-        end = timecode(job["end"])
-        name = f"{job['name']}-b{timestamp_to_short_timecode(begin)}-e{timestamp_to_short_timecode(end)}"
+        begin = utilities.timecode(job["begin"])
+        end = utilities.timecode(job["end"])
+        name = f"{job['name']}-b{utilities.timestamp_to_short_timecode(begin)}-e{utilities.timestamp_to_short_timecode(end)}"
         source = configuration["sources"][job["name"]]
         if "filters" in job and len(job["filters"]) > 0:
             for filter_name in job["filters"]:
                 if len(configuration["filters"][filter_name]["suffix"]) > 0:
                     name += f'-{configuration["filters"][filter_name]["suffix"]}'
         (directory / name).mkdir(exist_ok=True)
-        info(
+        utilities.info(
             animals.composite_name_to_icon(job["name"]),
-            f"{index + 1}/{len(configuration['jobs'])} {format_bold(name)}",
+            f"{index + 1}/{len(configuration['jobs'])} {utilities.format_bold(name)}",
         )
         output_path = directory / name / f"{name}.es"
         parameters_path = directory / name / "parameters.toml"
@@ -700,17 +636,21 @@ if args.command == "run":
                     and attachment["target"] in parameters["attachments"]
                     and (directory / name / attachment["target"]).is_file()
                 ):
-                    info(
+                    utilities.info(
                         "⏭ ",
                         f"skip copy {attachment['source']} → {attachment['target']}",
                     )
                 else:
-                    info("🗃 ", f"copy {attachment['source']} → {attachment['target']}")
+                    utilities.info(
+                        "🗃 ", f"copy {attachment['source']} → {attachment['target']}"
+                    )
                     shutil.copy2(
                         pathlib.Path(attachment["source"]),
-                        with_suffix(directory / name / attachment["target"], ".part"),
+                        utilities.with_suffix(
+                            directory / name / attachment["target"], ".part"
+                        ),
                     )
-                    with_suffix(
+                    utilities.with_suffix(
                         directory / name / attachment["target"], ".part"
                     ).rename(directory / name / attachment["target"])
                 parameters["attachments"][attachment["target"]] = attachment["source"]
@@ -725,17 +665,17 @@ if args.command == "run":
                 )
                 and output_path.is_file()
             ):
-                info("⏭ ", f"skip filter {filter_name}")
+                utilities.info("⏭ ", f"skip filter {filter_name}")
             else:
-                info(filter["icon"], f"apply filter {filter_name}")
+                utilities.info(filter["icon"], f"apply filter {filter_name}")
                 FILTERS[filter["type"]](
                     pathlib.Path(configuration["sources"][job["name"]]),
-                    with_suffix(output_path, ".part"),
+                    utilities.with_suffix(output_path, ".part"),
                     begin,
                     end,
                     filter["parameters"],
                 )
-                with_suffix(output_path, ".part").rename(output_path)
+                utilities.with_suffix(output_path, ".part").rename(output_path)
                 parameters["filters"][filter_name] = filter["parameters"]
                 save_parameters(parameters_path, parameters)
         else:
@@ -753,7 +693,7 @@ if args.command == "run":
                 )
                 and output_path.is_file()
             ):
-                info("⏭ ", f"skip filters {' + '.join(job['filters'])}")
+                utilities.info("⏭ ", f"skip filters {' + '.join(job['filters'])}")
             else:
                 with tempfile.TemporaryDirectory(
                     suffix=job["name"]
@@ -762,11 +702,11 @@ if args.command == "run":
                     input = pathlib.Path(configuration["sources"][job["name"]])
                     for index, filter_name in enumerate(job["filters"]):
                         if index == len(job["filters"]) - 1:
-                            output = with_suffix(output_path, ".part")
+                            output = utilities.with_suffix(output_path, ".part")
                         else:
                             output = temporary_directory / f"{uuid.uuid4()}.es"
                         filter = configuration["filters"][filter_name]
-                        info(filter["icon"], f"apply filter {filter_name}")
+                        utilities.info(filter["icon"], f"apply filter {filter_name}")
                         FILTERS[filter["type"]](
                             input,
                             output,
@@ -776,7 +716,7 @@ if args.command == "run":
                         )
                         input = output
                         parameters["filters"][filter_name] = filter["parameters"]
-                with_suffix(output_path, ".part").rename(output_path)
+                utilities.with_suffix(output_path, ".part").rename(output_path)
                 save_parameters(parameters_path, parameters)
         for task_name in job["tasks"]:
             task = configuration["tasks"][task_name]
@@ -791,17 +731,19 @@ if args.command == "run":
                 )
                 and output_path.is_file()
             ):
-                info("⏭ ", f"skip task {task_name}")
+                utilities.info("⏭ ", f"skip task {task_name}")
             else:
-                info(task["icon"], f"run task {task_name}")
+                utilities.info(task["icon"], f"run task {task_name}")
                 TASKS[task["type"]][1](
                     output_path,
-                    with_suffix(task_output_path, ".part"),
+                    utilities.with_suffix(task_output_path, ".part"),
                     begin,
                     end,
                     task["parameters"],
                 )
-                with_suffix(task_output_path, ".part").rename(task_output_path)
+                utilities.with_suffix(task_output_path, ".part").rename(
+                    task_output_path
+                )
                 parameters["tasks"][task_name] = task["parameters"]
                 save_parameters(parameters_path, parameters)
 
