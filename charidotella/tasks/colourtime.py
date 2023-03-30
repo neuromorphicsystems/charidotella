@@ -5,6 +5,7 @@ import colourtime
 import event_stream
 import matplotlib
 import matplotlib.colors
+import PIL.Image
 
 EXTENSION = ".png"
 
@@ -35,7 +36,13 @@ def run(
             alpha=parameters["alpha"],
             background_colour=matplotlib.colors.to_rgba(parameters["background_color"]),
         )
-        image.save(
+        image.resize(
+            size=(
+                image.width * parameters["scale"],
+                image.height * parameters["scale"],
+            ),
+            resample=PIL.Image.Resampling.NEAREST,  # type: ignore
+        ).save(
             str(output),
             compress_level=parameters["png_compression_level"],
             format="png",

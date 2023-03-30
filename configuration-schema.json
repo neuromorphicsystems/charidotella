@@ -125,6 +125,10 @@
                             "background_color": {
                                 "type": "string"
                             },
+                            "scale": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            },
                             "cycle": {
                                 "type": ["string", "integer"]
                             }
@@ -136,7 +140,8 @@
                             "colormap",
                             "alpha",
                             "png_compression_level",
-                            "background_color"
+                            "background_color",
+                            "scale"
                         ]
                     },
                     {
@@ -245,6 +250,10 @@
                             "ffmpeg": {
                                 "type": "string"
                             },
+                            "scale": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            },
                             "lambda_max": {
                                 "type": "number",
                                 "minimum": 0.0
@@ -263,6 +272,7 @@
                             "cumulative_ratio",
                             "timecode",
                             "h264_crf",
+                            "scale",
                             "ffmpeg"
                         ]
                     },
@@ -313,6 +323,10 @@
                             "ffmpeg": {
                                 "type": "string"
                             },
+                            "scale": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            },
                             "lambda_max": {
                                 "type": "number",
                                 "minimum": 0.0
@@ -329,7 +343,8 @@
                             "off_color",
                             "idle_color",
                             "cumulative_ratio",
-                            "ffmpeg"
+                            "ffmpeg",
+                            "scale"
                         ]
                     }
                 ]

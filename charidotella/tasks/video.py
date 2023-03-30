@@ -18,19 +18,30 @@ def run(
         int(value)
         for value in subprocess.run(
             [
-                str(importlib.resources.files("charidotella").joinpath("executables/size")),
+                str(
+                    importlib.resources.files("charidotella").joinpath(
+                        "executables/size"
+                    )
+                ),
                 str(input),
             ],
             check=True,
             capture_output=True,
         ).stdout.split(b"x")
     )
+    width *= parameters["scale"]
+    height *= parameters["scale"]
     es_to_frames_arguments = [
-        str(importlib.resources.files("charidotella").joinpath("executables/es_to_frames")),
+        str(
+            importlib.resources.files("charidotella").joinpath(
+                "executables/es_to_frames"
+            )
+        ),
         f"--input={input}",
         f"--begin={begin}",
         f"--end={end}",
         f"--frametime={parameters['frametime']}",
+        f"--scale={parameters['scale']}",
         f"--style={parameters['style']}",
         f"--tau={parameters['tau']}",
         f"--oncolor={parameters['on_color']}",

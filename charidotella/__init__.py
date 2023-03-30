@@ -401,6 +401,7 @@ def main():
                             "timecode": True,
                             "h264_crf": 15,
                             "ffmpeg": "ffmpeg",
+                            "scale": 1,
                         }
                     },
                 },
@@ -426,6 +427,7 @@ def main():
                                 "alpha": 0.1,
                                 "png_compression_level": 6,
                                 "background_color": "#191919",
+                                "scale": 1,
                             },
                         },
                         {
@@ -479,6 +481,7 @@ def main():
                                 "cumulative_ratio": 0.01,
                                 "timecode": False,
                                 "ffmpeg": "ffmpeg",
+                                "scale": 1,
                             },
                         },
                     ]

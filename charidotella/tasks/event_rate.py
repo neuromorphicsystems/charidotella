@@ -15,7 +15,11 @@ def run(
 ):
     subprocess.run(
         [
-            str(importlib.resources.files("charidotella").joinpath("executables/event_rate")),
+            str(
+                importlib.resources.files("charidotella").joinpath(
+                    "executables/event_rate"
+                )
+            ),
             str(input),
             str(output),
             f"--begin={begin}",

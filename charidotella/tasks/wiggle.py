@@ -39,6 +39,7 @@ def run(
             f"--begin={begin}",
             f"--end={end}",
             f"--frametime={frametime}",
+            f"--scale={parameters['scale']}",
             f"--style={parameters['style']}",
             f"--tau={tau}",
             f"--oncolor={parameters['on_color']}",
