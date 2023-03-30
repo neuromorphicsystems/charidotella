@@ -12,7 +12,6 @@ env:
   CIBW_ARCHS_MACOS: x86_64 arm64
   CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
   CIBW_SKIP: cp36-* cp37-* cp38-* pp* cp*-musllinux_i686
-  CIBW_BEFORE_BUILD_LINUX: whttps://github.com/premake/premake-4.x/archive/refs/tags/4.4-beta5.tar.gz
 
 jobs:
   build_wheels:
