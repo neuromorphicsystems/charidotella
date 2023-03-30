@@ -1,4 +1,5 @@
 import atexit
+import importlib.resources
 import pathlib
 import subprocess
 import typing
@@ -17,13 +18,7 @@ def run(
         int(value)
         for value in subprocess.run(
             [
-                str(
-                    pathlib.Path(__file__).parent.parent
-                    / "command_line_tools"
-                    / "build"
-                    / "release"
-                    / "size"
-                ),
+                str(importlib.resources.files("charidotella").joinpath("executables/size")),
                 str(input),
             ],
             check=True,
@@ -31,14 +26,8 @@ def run(
         ).stdout.split(b"x")
     )
     es_to_frames_arguments = [
-        str(
-            pathlib.Path(__file__).parent.parent
-            / "command_line_tools"
-            / "build"
-            / "release"
-            / "es_to_frames"
-        ),
-        f"--input={str(input)}",
+        str(importlib.resources.files("charidotella").joinpath("executables/es_to_frames")),
+        f"--input={input}",
         f"--begin={begin}",
         f"--end={end}",
         f"--frametime={parameters['frametime']}",

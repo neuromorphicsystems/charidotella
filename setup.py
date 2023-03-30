@@ -77,11 +77,10 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    packages=["charidotella"],
-    include_package_data=True,
+    packages=["charidotella", "charidotella.filters", "charidotella.tasks"],
     data_files=[
         (
-            "executables",
+            "charidotella/executables",
             [
                 str(
                     pathlib.Path("command_line_tools")
@@ -92,7 +91,7 @@ setuptools.setup(
                 for executable in executables
             ],
         ),
-        ("schemas", ["configuration-schema.json"]),
+        ("charidotella/schemas", ["configuration-schema.json"]),
     ],
     install_requires=[
         "colourtime",
@@ -109,4 +108,9 @@ setuptools.setup(
             sources=["charidotella/extension_placeholder.c"],
         ),
     ],
+    entry_points={
+        "console_scripts": [
+            "charidotella = charidotella:main",
+        ]
+    },
 )

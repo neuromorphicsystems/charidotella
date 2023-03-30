@@ -1,5 +1,7 @@
 import argparse
 import copy
+import functools
+import importlib.resources
 import json
 import pathlib
 import re
@@ -9,17 +11,14 @@ import tempfile
 import typing
 import uuid
 
-import animals
 import event_stream
-import filters.arbiter_saturation
-import filters.default
 import jsonschema
-import tasks.colourtime
-import tasks.event_rate
-import tasks.video
-import tasks.wiggle
 import toml
-import utilities
+
+from . import animals as animals
+from . import filters as filters
+from . import tasks as tasks
+from . import utilities as utilities
 
 filter_apply = typing.Callable[
     [
@@ -52,6 +51,7 @@ TASKS: dict[str, tuple[str, task_run]] = {
     "colourtime": (tasks.colourtime.EXTENSION, tasks.colourtime.run),
     "event_rate": (tasks.event_rate.EXTENSION, tasks.event_rate.run),
     "video": (tasks.video.EXTENSION, tasks.video.run),
+    "wiggle": (tasks.wiggle.EXTENSION, tasks.wiggle.run),
 }
 
 
@@ -169,11 +169,16 @@ def main():
             retstr += arraystr
             return (retstr, retdict)
 
-    def render_configuration_schema():
+    @functools.lru_cache(maxsize=None)
+    def configuration_schema():
         with open(
-            pathlib.Path(__file__).resolve().parent / "configuration-schema.json"
-        ) as schema_file:
-            return json.load(schema_file)
+            str(
+                importlib.resources.files("charidotella").joinpath(
+                    "schemas/configuration-schema.json"
+                )
+            )
+        ) as configuration_schema_file:
+            return json.load(configuration_schema_file)
 
     def load_parameters(path: pathlib.Path):
         if path.is_file():
@@ -318,7 +323,7 @@ def main():
                     "begin": utilities.timestamp_to_timecode(begin),
                     "end": utilities.timestamp_to_timecode(end),
                     "filters": ["default"],
-                    "tasks": ["colourtime-.+", "event-rate-.+", "video-real-time"],
+                    "tasks": ["colourtime-.+", "event-rate-.+", "wiggle-1s", "video-real-time"],
                 }
             )
         with open(
@@ -390,6 +395,22 @@ def main():
                             "cumulative_ratio": 0.01,
                             "timecode": True,
                             "h264_crf": 15,
+                            "ffmpeg": "ffmpeg",
+                        },
+                        "wiggle-1s": {
+                            "type": "wiggle",
+                            "icon": "🌀",
+                            "forward_duration": utilities.timestamp_to_timecode(
+                                500000
+                            ),
+                            "tau_to_frametime_ratio": 3.0,
+                            "style": "linear",
+                            "idle_color": "#191919",
+                            "on_color": "#F4C20D",
+                            "off_color": "#1E88E5",
+                            "idle_color": "#191919",
+                            "cumulative_ratio": 0.01,
+                            "timecode": False,
                             "ffmpeg": "ffmpeg",
                         },
                     },
@@ -491,6 +512,7 @@ def main():
                                         "tasks": [
                                             "colourtime-.+",
                                             "event-rate-.+",
+                                            "wiggle-1s",
                                             "video-real-time",
                                         ],
                                     },
@@ -521,7 +543,7 @@ def main():
         ) as configuration_file:
             jsonschema.validate(
                 toml.load(configuration_file),
-                render_configuration_schema(),
+                configuration_schema(),
             )
         utilities.with_suffix(configuration_path, ".part").rename(configuration_path)
         sys.exit(0)
@@ -530,9 +552,9 @@ def main():
         configuration_path = pathlib.Path(args.configuration).resolve()
         with open(configuration_path) as configuration_file:
             configuration = toml.load(configuration_file)
-        jsonschema.validate(configuration, render_configuration_schema())
+        jsonschema.validate(configuration, configuration_schema())
         run_generators(configuration)
-        jsonschema.validate(configuration, render_configuration_schema())
+        jsonschema.validate(configuration, configuration_schema())
         for job in configuration["jobs"]:
             if not job["name"] in configuration["sources"]:
                 utilities.error(f"\"{job['name']}\" is not listed in sources")
@@ -762,9 +784,9 @@ def main():
         configuration_path = pathlib.Path(args.configuration).resolve()
         with open(configuration_path) as configuration_file:
             configuration = toml.load(configuration_file)
-        jsonschema.validate(configuration, render_configuration_schema())
+        jsonschema.validate(configuration, configuration_schema())
         run_generators(configuration)
-        jsonschema.validate(configuration, render_configuration_schema())
+        jsonschema.validate(configuration, configuration_schema())
         with open(pathlib.Path(args.output), "w") as output_file:
             json.dump(configuration, output_file, indent=4)
 

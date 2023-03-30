@@ -1,3 +1,4 @@
+import importlib.resources
 import pathlib
 import subprocess
 import typing
@@ -14,11 +15,7 @@ def run(
 ):
     subprocess.run(
         [
-            pathlib.Path(__file__).parent.parent
-            / "command_line_tools"
-            / "build"
-            / "release"
-            / "event_rate",
+            str(importlib.resources.files("charidotella").joinpath("executables/event_rate")),
             str(input),
             str(output),
             f"--begin={begin}",

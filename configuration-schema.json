@@ -265,6 +265,72 @@
                             "h264_crf",
                             "ffmpeg"
                         ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": ["wiggle"]
+                            },
+                            "icon": {
+                                "type": "string"
+                            },
+                            "forward_duration": {
+                                "type": ["string", "integer"]
+                            },
+                            "tau_to_frametime_ratio": {
+                                "type": "number",
+                                "exclusiveMinimum": 0.0
+                            },
+                            "style": {
+                                "type": "string",
+                                "enum": [
+                                    "exponential",
+                                    "linear",
+                                    "window",
+                                    "cumulative",
+                                    "cumulative-shared"
+                                ]
+                            },
+                            "on_color": {
+                                "type": "string"
+                            },
+                            "off_color": {
+                                "type": "string"
+                            },
+                            "idle_color": {
+                                "type": "string"
+                            },
+                            "cumulative_ratio": {
+                                "type": "number",
+                                "minimum": 0.0,
+                                "maximum": 1.0
+                            },
+                            "timecode": {
+                                "type": "boolean"
+                            },
+                            "ffmpeg": {
+                                "type": "string"
+                            },
+                            "lambda_max": {
+                                "type": "number",
+                                "minimum": 0.0
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "type",
+                            "icon",
+                            "forward_duration",
+                            "tau_to_frametime_ratio",
+                            "style",
+                            "on_color",
+                            "off_color",
+                            "idle_color",
+                            "cumulative_ratio",
+                            "ffmpeg"
+                        ]
                     }
                 ]
             }
