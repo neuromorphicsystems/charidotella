@@ -1,11 +1,16 @@
 Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolbox to organise and visualise Event Stream (.es) recordings.
 
+- [Dependencies](#dependencies)
+- [Get started](#get-started)
+- [Contribute](#contribute)
+
+
 ## Dependencies
 
 -   **Debian / Ubuntu**
 
     ```sh
-    sudo apt install premake4
+    sudo apt install ffmpeg
     ```
 
 -   **macOS**
@@ -49,7 +54,7 @@ Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolb
     charidotella configure ./recordings
     ```
 
-The directory now has the following structure
+    The directory now has the following structure
 
     ```txt
     my-wonderful-project
@@ -90,7 +95,7 @@ The directory now has the following structure
     └── charidotella-configuration.toml
     ```
 
-6. (Optional) Edit or create new jobs and run `charidotella run` again (only new jobs will run)
+6. (Optional) Edit `charidotella-coniguration.toml` and run `charidotella run` again (job that have already been completed will be skipped unless `--force` is used)
 
 See `charidotella --help` for a list of other options.
 

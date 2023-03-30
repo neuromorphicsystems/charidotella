@@ -74,7 +74,7 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
 
 setuptools.setup(
     name="charidotella",
-    version="0.1",
+    version="0.2",
     url="https://github.com/neuromorphicsystems/charidotella",
     author="Alexandre Marcireau",
     author_email="alexandre.marcireau@gmail.com",
