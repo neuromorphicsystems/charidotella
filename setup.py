@@ -19,6 +19,11 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
         "include command_line_tools/source/*.hpp",
         "include command_line_tools/source/*.cpp",
         "include command_line_tools/premake4.lua",
+        "include command_line_tools/third_party/pontella/source/pontella.hpp",
+        "include command_line_tools/third_party/sepia/source/sepia.hpp",
+        "include command_line_tools/third_party/tarsier/source/replicate.hpp",
+        "include command_line_tools/third_party/tarsier/source/stitch.hpp",
+        "include command_line_tools/third_party/stb_truetype.hpp",
     ]
     if not "sdist" in sys.argv:
         if sys.platform == "win32":
