@@ -1,4 +1,4 @@
-Render is a toolbox to organise and visualise Event Stream (.es) recordings.
+Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolbox to organise and visualise Event Stream (.es) recordings.
 
 ## Install render
 
