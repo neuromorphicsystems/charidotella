@@ -1,69 +1,76 @@
 Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolbox to organise and visualise Event Stream (.es) recordings.
 
-## Install render
+## Get started
 
-1. Clone this repository (notice the `--recursive` flag)
+1. Install the Python package
 
-```sh
-git clone --recursive https://github.com/neuromorphicsystems/render
-```
+    ```sh
+    pip3 install charidotella
+    ```
 
-2. Install the dependencies for your platform for command_line_tools (see https://github.com/neuromorphic-paris/command_line_tools#dependencies)
+2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is *.es*)
 
-3. Compile command_line_tools
+    ```txt
+    my-wonderful-project
+    └── recordings
+        ├── file_1.es
+        ├── file_2.es
+        ├── ...
+        └── file_n.es
+    ```
 
-```sh
-cd render/command_line_tools
-premake4 gmake
-cd build
-make
-```
+3. Generate a configuration file
 
-3. Install Python dependencies
+    ```sh
+    cd my-wonderful-project
+    charidotella configure ./recordings
+    ```
 
-```sh
-pip3 install -r requirements.txt
-```
+The directory now has the following structure
 
-4. Install FFmpeg
+    ```txt
+    my-wonderful-project
+    ├── recordings
+    │   ├── file_1.es
+    │   ├── file_2.es
+    │   ├── ...
+    │   └── file_n.es
+    └── charidotella-configuration.toml
+    ```
 
--   **Debian/Ubuntu**
+4. (Optional) Edit `charidotella-coniguration.toml` to change the jobs' parameters
 
-```sh
-apt install ffmpeg
-```
+5. Run the jobs
 
--   **macOS**
+    ```
+    charidotella run
+    ```
+    The directory now has the following structure
+    ```txt
+    my-wonderful-project
+    ├── recordings
+    │   ├── file_1.es
+    │   ├── file_2.es
+    │   ├── ...
+    │   └── file_n.es
+    ├── renders
+    │   ├── adjective-animal-1
+    │   │    ├── filtered-recording.es
+    │   │    ├── rendered-file-1.es
+    │   │    ├── ...
+    │   │    └── rendered-file-m.es
+    │   ├── adjective-animal-2
+    │   ├── ...
+    │   └── adjective-animal-n
+    └── charidotella-configuration.toml
+    ```
 
-```sh
-brew install ffmpeg
-```
 
--   **Windows**
+6. (Optional) Edit or create new jobs and run `charidotella run` again (only new jobs will run)
 
-```sh
-choco install ffmpeg
-```
+See `charidotella --help` for a list of other options.
 
-## Use render
-
-1.  Generate a configuration file
-
-```sh
-python3 render.py configure /path/to/recordings/directory
-```
-
-2. Edit the generated _render-configuration.toml_
-
-3. Run the configured tasks
-
-```sh
-python3 render.py run
-```
-
-4. Modifiy _render-configuration.toml_ again (for instance, add new tasks and jobs). `python3 render.py run` skips already completed tasks and only runs only the new ones (unless the flag `--force` is used).
-
-## Contribute to render
+## Contribute
 
 After code edits, run the formatters and linters.
 

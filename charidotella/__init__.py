@@ -71,7 +71,7 @@ def main():
     configure_parser.add_argument(
         "--configuration",
         "-c",
-        default="render-configuration.toml",
+        default="charidotella-configuration.toml",
         help="Render configuration file path",
     )
     configure_parser.add_argument(
@@ -84,7 +84,7 @@ def main():
     run_parser.add_argument(
         "--configuration",
         "-c",
-        default="render-configuration.toml",
+        default="charidotella-configuration.toml",
         help="Render configuration file path",
     )
     run_parser.add_argument(
@@ -99,13 +99,13 @@ def main():
     resolve_parser.add_argument(
         "--configuration",
         "-c",
-        default="render-configuration.toml",
+        default="charidotella-configuration.toml",
         help="Render configuration file path",
     )
     resolve_parser.add_argument(
         "--output",
         "-o",
-        default="render-configuration-resolved.json",
+        default="charidotella-configuration-resolved.json",
         help="Resolved render configuration file path",
     )
     args = parser.parse_args()

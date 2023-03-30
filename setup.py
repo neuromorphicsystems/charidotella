@@ -41,13 +41,21 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
                     check=True,
                     cwd=dirname / "command_line_tools" / "build",
                 )
-                (dirname / "command_line_tools" / "build" / f"{executable}.exe").rename(
-                    dirname / "command_line_tools" / "build" / executable
+                (
+                    dirname
+                    / "command_line_tools"
+                    / "build"
+                    / "release"
+                    / f"{executable}.exe"
+                ).rename(
+                    dirname / "command_line_tools" / "build" / "release" / executable
                 )
         else:
             if not (dirname / "command_line_tools" / "build" / "Makefile").is_file():
                 subprocess.run(
-                    ["premake4", "gmake"], check=True, cwd=dirname / "command_line_tools"
+                    ["premake4", "gmake"],
+                    check=True,
+                    cwd=dirname / "command_line_tools",
                 )
             for executable in executables:
                 subprocess.run(
