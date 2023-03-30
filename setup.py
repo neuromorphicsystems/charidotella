@@ -117,7 +117,7 @@ setuptools.setup(
         setuptools.extension.Extension(
             "charidotella_extension_placeholder",
             language="cpp",
-            sources=["charidotella/extension_placeholder.c"],
+            sources=["charidotella/charidotella_extension_placeholder.c"],
         ),
     ],
     entry_points={
