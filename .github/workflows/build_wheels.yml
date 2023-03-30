@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
       - name: Install build requirements
         if: runner.os == 'Linux'
         run: sudo apt-get install -y premake4
@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
       - name: Install build requirements
         if: runner.os == 'Linux'
         run: sudo apt-get install -y premake4
