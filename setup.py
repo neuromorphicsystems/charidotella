@@ -42,6 +42,9 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
                     cwd=dirname / "command_line_tools" / "build",
                 )
                 (
+                    dirname / "command_line_tools" / "build" / "release" / executable
+                ).unlink(missing_ok=True)
+                (
                     dirname
                     / "command_line_tools"
                     / "build"
