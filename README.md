@@ -1,5 +1,28 @@
 Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolbox to organise and visualise Event Stream (.es) recordings.
 
+## Dependencies
+
+-   **Debian / Ubuntu**
+
+    ```sh
+    sudo apt install premake4
+    ```
+
+-   **macOS**
+
+    1. Install Homebrew (https://brew.sh)
+    2. Run in a terminal
+        ```sh
+        brew install ffmpeg
+        ```
+
+-   **Windows**
+    1. Install Chocolatey (https://chocolatey.org/)
+    2. Open Powershell as administrator and run
+        ```sh
+        choco install -y ffmpeg
+        ```
+
 ## Get started
 
 1. Install the Python package
@@ -8,7 +31,7 @@ Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolb
     pip3 install charidotella
     ```
 
-2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is *.es*)
+2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is _.es_)
 
     ```txt
     my-wonderful-project
@@ -45,7 +68,9 @@ The directory now has the following structure
     ```
     charidotella run
     ```
+
     The directory now has the following structure
+
     ```txt
     my-wonderful-project
     ├── recordings
@@ -64,7 +89,6 @@ The directory now has the following structure
     │   └── adjective-animal-n
     └── charidotella-configuration.toml
     ```
-
 
 6. (Optional) Edit or create new jobs and run `charidotella run` again (only new jobs will run)
 
