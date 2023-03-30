@@ -1,14 +1,6 @@
-[project]
-name = "render"
-authors = [
-    {name = "Alexandre Marcireau", email = "alexandre.marcireau@gmail.com"},
-]
-description = "Render Event Stream (.es) files"
-readme = "README.md"
-license = {text = "MIT"}
-classifiers = ["Programming Language :: Python :: 3"]
-dependencies = ["event_stream", "matplotlib", "numpy", "pillow"]
-version = "0.1"
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 extend-exclude = "command_line_tools"

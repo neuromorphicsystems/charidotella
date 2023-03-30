@@ -1,1 +1,8 @@
+build
+dist
+wheels
+.eggs
 __pycache__
+*.egg-info
+*.so
+MANIFEST.in

@@ -1,0 +1,72 @@
+name: Build wheels
+
+on:
+  push:
+  pull_request:
+  release:
+    types:
+      - published
+
+env:
+  CIBW_ARCHS_MACOS: x86_64 arm64
+  CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Install build requirements
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y premake4
+      - name: Install build requirements
+        if: runner.os == 'macOS'
+        run: |
+          brew tap tonyseek/premake
+          brew install tonyseek/premake/premake4
+      - name: Install build requirements
+        if: runner.os == 'Windows'
+        run: |
+          choco install -y premake.portable
+          choco install -y visualstudio2019buildtools
+          choco install -y visualstudio2019-workload-vctools
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.11.2
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Build sdist
+        run: pipx run build --sdist
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.tar.gz
+  upload_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@v1.5.0
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
