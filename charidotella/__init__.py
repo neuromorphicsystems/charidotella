@@ -323,7 +323,12 @@ def main():
                     "begin": utilities.timestamp_to_timecode(begin),
                     "end": utilities.timestamp_to_timecode(end),
                     "filters": ["default"],
-                    "tasks": ["colourtime-.+", "event-rate-.+", "wiggle-1s", "video-real-time"],
+                    "tasks": [
+                        "colourtime-.+",
+                        "event-rate-.+",
+                        "wiggle-.+",
+                        "video-real-time",
+                    ],
                 }
             )
         with open(
@@ -396,23 +401,7 @@ def main():
                             "timecode": True,
                             "h264_crf": 15,
                             "ffmpeg": "ffmpeg",
-                        },
-                        "wiggle-1s": {
-                            "type": "wiggle",
-                            "icon": "🌀",
-                            "forward_duration": utilities.timestamp_to_timecode(
-                                500000
-                            ),
-                            "tau_to_frametime_ratio": 3.0,
-                            "style": "linear",
-                            "idle_color": "#191919",
-                            "on_color": "#F4C20D",
-                            "off_color": "#1E88E5",
-                            "idle_color": "#191919",
-                            "cumulative_ratio": 0.01,
-                            "timecode": False,
-                            "ffmpeg": "ffmpeg",
-                        },
+                        }
                     },
                 },
                 configuration_file,
@@ -466,6 +455,32 @@ def main():
                                 "height": 1080,
                             },
                         },
+                        {
+                            "parameters": {
+                                "suffix": ["4s", "2s", "1s", "0.5s"],
+                                "forward_duration": [
+                                    utilities.timestamp_to_timecode(2000000),
+                                    utilities.timestamp_to_timecode(1000000),
+                                    utilities.timestamp_to_timecode(500000),
+                                    utilities.timestamp_to_timecode(250000),
+                                ],
+                            },
+                            "template": {
+                                "name": "wiggle-@suffix",
+                                "type": "wiggle",
+                                "icon": "🌀",
+                                "forward_duration": "@raw(forward_duration)",
+                                "tau_to_frametime_ratio": 3.0,
+                                "style": "linear",
+                                "idle_color": "#191919",
+                                "on_color": "#F4C20D",
+                                "off_color": "#1E88E5",
+                                "idle_color": "#191919",
+                                "cumulative_ratio": 0.01,
+                                "timecode": False,
+                                "ffmpeg": "ffmpeg",
+                            },
+                        },
                     ]
                 },
                 configuration_file,
@@ -512,7 +527,7 @@ def main():
                                         "tasks": [
                                             "colourtime-.+",
                                             "event-rate-.+",
-                                            "wiggle-1s",
+                                            "wiggle-.+",
                                             "video-real-time",
                                         ],
                                     },

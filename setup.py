@@ -45,9 +45,10 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
                     dirname / "command_line_tools" / "build" / executable
                 )
         else:
-            subprocess.run(
-                ["premake4", "gmake"], check=True, cwd=dirname / "command_line_tools"
-            )
+            if not (dirname / "command_line_tools" / "build" / "Makefile").is_file():
+                subprocess.run(
+                    ["premake4", "gmake"], check=True, cwd=dirname / "command_line_tools"
+                )
             for executable in executables:
                 subprocess.run(
                     ["make", executable],
