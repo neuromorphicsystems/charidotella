@@ -111,6 +111,7 @@ setuptools.setup(
         "event_stream",
         "jsonschema",
         "matplotlib",
+        "scipy",
         "toml",
     ],
     ext_modules=[

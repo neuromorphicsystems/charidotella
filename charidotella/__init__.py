@@ -34,6 +34,7 @@ filter_apply = typing.Callable[
 FILTERS: dict[str, filter_apply] = {
     "default": filters.default.apply,
     "arbiter_saturation": filters.arbiter_saturation.apply,
+    "hot_pixels": filters.hot_pixels.apply,
 }
 
 task_run = typing.Callable[
@@ -215,6 +216,26 @@ def main():
                     parameter_name=parameter_name,
                     parameter_value=parameter_value,
                 )
+            elif isinstance(value, list):
+                new_value = []
+                for entry in value:
+                    if isinstance(entry, str):
+                        if entry == f"@raw({parameter_name})":
+                            new_value.append(parameter_value)
+                        else:
+                            new_value.append(entry.replace(
+                                f"@{parameter_name}", str(parameter_value)
+                            ))
+                    elif isinstance(entry, dict):
+                        recursive_replace(
+                            template=entry,
+                            parameter_name=parameter_name,
+                            parameter_value=parameter_value,
+                        )
+                        new_value.append(entry)
+                    else:
+                        new_value.append(entry)
+                template[key] = new_value
 
     def run_generators(configuration: dict[str, typing.Any]):
         for key, generator_key in (
@@ -571,8 +592,20 @@ def main():
         with open(configuration_path) as configuration_file:
             configuration = toml.load(configuration_file)
         jsonschema.validate(configuration, configuration_schema())
+        if not "filters" in configuration:
+            configuration["filters"] = {}
+        if not "tasks" in configuration:
+            configuration["tasks"] = {}
+        if not "jobs" in configuration:
+            configuration["jobs"] = []
+        if not "attachments" in configuration:
+            configuration["attachments"] = {}
         run_generators(configuration)
         jsonschema.validate(configuration, configuration_schema())
+        if len(configuration["filters"]) == 0:
+            utilities.error("there are no filters in the configuration")
+        if len(configuration["jobs"]) == 0:
+            utilities.error("there are no jobs in the configuration")
         for job in configuration["jobs"]:
             if not job["name"] in configuration["sources"]:
                 utilities.error(f"\"{job['name']}\" is not listed in sources")
@@ -803,6 +836,14 @@ def main():
         with open(configuration_path) as configuration_file:
             configuration = toml.load(configuration_file)
         jsonschema.validate(configuration, configuration_schema())
+        if not "filters" in configuration:
+            configuration["filters"] = {}
+        if not "tasks" in configuration:
+            configuration["tasks"] = {}
+        if not "jobs" in configuration:
+            configuration["jobs"] = []
+        if not "attachments" in configuration:
+            configuration["attachments"] = []
         run_generators(configuration)
         jsonschema.validate(configuration, configuration_schema())
         with open(pathlib.Path(args.output), "w") as output_file:

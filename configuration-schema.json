@@ -448,6 +448,6 @@
             }
         }
     },
-    "required": ["filters", "jobs"],
+    "required": ["directory", "sources"],
     "additionalProperties": false
 }
