@@ -223,9 +223,11 @@ def main():
                         if entry == f"@raw({parameter_name})":
                             new_value.append(parameter_value)
                         else:
-                            new_value.append(entry.replace(
-                                f"@{parameter_name}", str(parameter_value)
-                            ))
+                            new_value.append(
+                                entry.replace(
+                                    f"@{parameter_name}", str(parameter_value)
+                                )
+                            )
                     elif isinstance(entry, dict):
                         recursive_replace(
                             template=entry,
