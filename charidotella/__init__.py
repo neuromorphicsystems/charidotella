@@ -81,6 +81,12 @@ def main():
         action="store_true",
         help="Replace the configuration if it exists",
     )
+    configure_parser.add_argument(
+        "--preserve-names",
+        "-p",
+        action="store_true",
+        help="Do not generate new names for the recordings",
+    )
     run_parser = subparsers.add_parser("run", help="Process a configuration file")
     run_parser.add_argument(
         "--configuration",
@@ -311,7 +317,18 @@ def main():
         paths.sort(key=lambda path: (path.stem, path.parent))
         if len(paths) == 0:
             utilities.error(f'no .es files found in "{directory}"')
-        names = animals.generate_names(len(paths))
+        if args.preserve_names:
+            names = [path.stem for path in paths]
+            if len(names) != len(set(names)):
+                name_to_path: dict[str, pathlib.Path] = {}
+                for path in paths:
+                    if path.stem in name_to_path:
+                        utilities.error(
+                            f'two files have the same name ("{name_to_path[path.stem]}" and "{path}"), rename one or do *not* use the flag --preserve-name'
+                        )
+                    name_to_path[path.stem] = path
+        else:
+            names = animals.generate_names(len(paths))
         attachments: dict[str, list[dict[str, str]]] = {}
         for name, path in zip(names, paths):
             for sibling in path.parent.iterdir():

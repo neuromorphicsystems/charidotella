@@ -33,7 +33,7 @@ Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolb
 1. Install the Python package
 
     ```sh
-    python3 -m pip install --user charidotella
+    python3 -m pip install charidotella
     ```
 
 2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is _.es_)
