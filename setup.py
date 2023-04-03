@@ -35,6 +35,7 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
                 ["premake4", "vs2010"], cwd=dirname / "command_line_tools", check=True
             )
             for executable in executables:
+                print(f"build {executable}") # @DEV
                 subprocess.run(
                     [
                         "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MsBuild.exe",
@@ -45,9 +46,17 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
                     check=True,
                     cwd=dirname / "command_line_tools" / "build",
                 )
+                print(f"delete {executable} from assets") # @DEV
                 (dirname / "charidotella" / "assets" / executable).unlink(
                     missing_ok=True
                 )
+                print(f"copy {executable}.exe to assets") # @DEV
+                print(dirname
+                    / "command_line_tools"
+                    / "build"
+                    / "release"
+                    / f"{executable}.exe")
+                print(dirname / "charidotella" / "assets" / executable)
                 shutil.copy2(
                     dirname
                     / "command_line_tools"
