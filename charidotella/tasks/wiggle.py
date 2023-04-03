@@ -31,7 +31,7 @@ def run(
         es_to_frames_arguments = [
             str(
                 importlib.resources.files("charidotella").joinpath(
-                    "executables/es_to_frames"
+                    "assets/es_to_frames"
                 )
             ),
             f"--input={input}",

@@ -17,7 +17,7 @@ def run(
         [
             str(
                 importlib.resources.files("charidotella").joinpath(
-                    "executables/event_rate"
+                    "assets/event_rate"
                 )
             ),
             str(input),

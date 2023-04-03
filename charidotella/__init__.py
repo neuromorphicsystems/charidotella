@@ -175,7 +175,7 @@ def main():
         with open(
             str(
                 importlib.resources.files("charidotella").joinpath(
-                    "schemas/configuration-schema.json"
+                    "assets/configuration-schema.json"
                 )
             )
         ) as configuration_schema_file:
