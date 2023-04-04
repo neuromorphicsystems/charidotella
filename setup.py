@@ -84,10 +84,11 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
         content = "\n".join(manifest_lines)
         manifest.write(f"{content}\n")
 
+exec(open(dirname / "charidotella" / "version.py").read())
 
 setuptools.setup(
     name="charidotella",
-    version="0.7",
+    version=__version__, # type: ignore
     url="https://github.com/neuromorphicsystems/charidotella",
     author="Alexandre Marcireau",
     author_email="alexandre.marcireau@gmail.com",
