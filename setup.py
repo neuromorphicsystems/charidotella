@@ -1,6 +1,6 @@
 import pathlib
-import subprocess
 import shutil
+import subprocess
 import sys
 
 import setuptools
@@ -87,7 +87,7 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
 
 setuptools.setup(
     name="charidotella",
-    version="0.6",
+    version="0.7",
     url="https://github.com/neuromorphicsystems/charidotella",
     author="Alexandre Marcireau",
     author_email="alexandre.marcireau@gmail.com",

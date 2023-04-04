@@ -19,6 +19,7 @@ from . import animals as animals
 from . import filters as filters
 from . import tasks as tasks
 from . import utilities as utilities
+from .version import __version__ as __version__
 
 filter_apply = typing.Callable[
     [
@@ -35,6 +36,7 @@ FILTERS: dict[str, filter_apply] = {
     "default": filters.default.apply,
     "arbiter_saturation": filters.arbiter_saturation.apply,
     "hot_pixels": filters.hot_pixels.apply,
+    "transpose": filters.transpose.apply,
 }
 
 task_run = typing.Callable[
@@ -60,6 +62,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Process Event Stream files",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--version", "-v", action="store_true", help="show the version and exit"
     )
     subparsers = parser.add_subparsers(dest="command")
     configure_parser = subparsers.add_parser(
@@ -116,6 +121,12 @@ def main():
         help="Resolved render configuration file path",
     )
     args = parser.parse_args()
+    if args.version:
+        print(__version__)
+        sys.exit(0)
+    if args.command is None:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     class Encoder(toml.TomlEncoder):
         def dump_list(self, v):
@@ -418,6 +429,35 @@ def main():
                                 "ratio": "@raw(ratio)",
                             },
                         },
+                        {
+                            "parameters": {
+                                "suffix": [
+                                    "flip-left-right",
+                                    "flip-top_bottom",
+                                    "rotate-90",
+                                    "rotate-180",
+                                    "rotate-270",
+                                    "transpose",
+                                    "transverse",
+                                ],
+                                "method": [
+                                    "flip_left_right",
+                                    "flip_top_bottom",
+                                    "rotate_90",
+                                    "rotate_180",
+                                    "rotate_270",
+                                    "transpose",
+                                    "transverse",
+                                ],
+                            },
+                            "template": {
+                                "name": "transpose-@suffix",
+                                "type": "transpose",
+                                "icon": "📐",
+                                "suffix": "@suffix",
+                                "method": "@method",
+                            },
+                        },
                     ]
                 },
                 configuration_file,
@@ -513,13 +553,13 @@ def main():
                                 "icon": "🌀",
                                 "forward_duration": "@raw(forward_duration)",
                                 "tau_to_frametime_ratio": 3.0,
-                                "style": "linear",
+                                "style": "cumulative",
                                 "idle_color": "#191919",
                                 "on_color": "#F4C20D",
                                 "off_color": "#1E88E5",
                                 "idle_color": "#191919",
                                 "cumulative_ratio": 0.01,
-                                "timecode": False,
+                                "timecode": True,
                                 "ffmpeg": "ffmpeg",
                                 "scale": 1,
                             },

@@ -18,11 +18,7 @@ def run(
         int(value)
         for value in subprocess.run(
             [
-                str(
-                    importlib.resources.files("charidotella").joinpath(
-                        "assets/size"
-                    )
-                ),
+                str(importlib.resources.files("charidotella").joinpath("assets/size")),
                 str(input),
             ],
             check=True,
@@ -32,11 +28,7 @@ def run(
     width *= parameters["scale"]
     height *= parameters["scale"]
     es_to_frames_arguments = [
-        str(
-            importlib.resources.files("charidotella").joinpath(
-                "assets/es_to_frames"
-            )
-        ),
+        str(importlib.resources.files("charidotella").joinpath("assets/es_to_frames")),
         f"--input={input}",
         f"--begin={begin}",
         f"--end={end}",

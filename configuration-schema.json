@@ -66,6 +66,33 @@
                         },
                         "additionalProperties": false,
                         "required": ["type", "icon", "suffix", "ratio"]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": ["transpose"]
+                            },
+                            "icon": {
+                                "type": "string"
+                            },
+                            "suffix": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string",
+                                "enum": [
+                                    "flip_left_right",
+                                    "flip_top_bottom",
+                                    "rotate_90",
+                                    "rotate_180",
+                                    "rotate_270",
+                                    "transpose",
+                                    "transverse"
+                                ]
+                            }
+                        }
                     }
                 ]
             }

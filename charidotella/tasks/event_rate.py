@@ -16,9 +16,7 @@ def run(
     subprocess.run(
         [
             str(
-                importlib.resources.files("charidotella").joinpath(
-                    "assets/event_rate"
-                )
+                importlib.resources.files("charidotella").joinpath("assets/event_rate")
             ),
             str(input),
             str(output),
