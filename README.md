@@ -1,9 +1,10 @@
 Charidotella (https://en.wikipedia.org/wiki/Charidotella_sexpunctata) is a toolbox to organise and visualise Event Stream (.es) recordings.
 
+It supports Python 3.9, 3.10, and 3.11.
+
 - [Dependencies](#dependencies)
 - [Get started](#get-started)
 - [Contribute](#contribute)
-
 
 ## Dependencies
 

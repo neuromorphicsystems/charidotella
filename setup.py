@@ -24,6 +24,7 @@ if not "-h" in sys.argv and not "--help" in sys.argv:
         "include command_line_tools/third_party/tarsier/source/replicate.hpp",
         "include command_line_tools/third_party/tarsier/source/stitch.hpp",
         "include command_line_tools/third_party/stb_truetype.hpp",
+        "include command_line_tools/third_party/monaco.ttf.base64.hpp",
     ]
     if "sdist" in sys.argv:
         manifest_lines.append(f"include configuration-schema.json")

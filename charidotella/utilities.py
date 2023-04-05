@@ -48,9 +48,9 @@ def timestamp_to_short_timecode(timestamp: int):
     timestamp -= seconds * 1000000
     timestamp_string = "" if timestamp == 0 else f".{timestamp:06d}".rstrip("0")
     if hours > 0:
-        return f"{hours}:{minutes:02d}:{seconds:02d}{timestamp_string}"
+        return f"{hours}-{minutes:02d}-{seconds:02d}{timestamp_string}"
     if minutes > 0:
-        return f"{minutes}:{seconds:02d}{timestamp_string}"
+        return f"{minutes}-{seconds:02d}{timestamp_string}"
     return f"{seconds}{timestamp_string}"
 
 

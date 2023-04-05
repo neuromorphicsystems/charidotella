@@ -150,7 +150,7 @@ def main():
                             if isinstance(a, dict):
                                 arrayoftables = True
                     if arrayoftables:
-                        for index, a in enumerate(o[section]):
+                        for a in o[section]:
                             arraytabstr = ""
                             arraystr += f"\n[[{sup}{qsection}]]\n"
                             s, d = self.dump_sections(a, sup + qsection)
@@ -329,7 +329,7 @@ def main():
         if len(paths) == 0:
             utilities.error(f'no .es files found in "{directory}"')
         if args.preserve_names:
-            names = [path.stem for path in paths]
+            names = sorted([path.stem for path in paths])
             if len(names) != len(set(names)):
                 name_to_path: dict[str, pathlib.Path] = {}
                 for path in paths:
@@ -433,7 +433,7 @@ def main():
                             "parameters": {
                                 "suffix": [
                                     "flip-left-right",
-                                    "flip-top_bottom",
+                                    "flip-top-bottom",
                                     "rotate-90",
                                     "rotate-180",
                                     "rotate-270",
@@ -451,7 +451,7 @@ def main():
                                 ],
                             },
                             "template": {
-                                "name": "transpose-@suffix",
+                                "name": "@suffix",
                                 "type": "transpose",
                                 "icon": "📐",
                                 "suffix": "@suffix",
