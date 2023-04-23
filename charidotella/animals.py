@@ -117,9 +117,9 @@ def generate_names(count: int):
         if count < generator.get_combinations_count(length) / 2:
             coolname_length = length
             break
-    names = []
-    while len(set(names)) < count:
-        while len(names) < count:
-            names.append(generator.generate_slug(coolname_length))
+    names_set: set[str] = set()
+    while len(names_set) < count:
+        names_set.add(generator.generate_slug(coolname_length))
+    names = list(names_set)
     names.sort()
     return names

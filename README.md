@@ -52,7 +52,7 @@ It supports Python 3.9, 3.10, and 3.11.
 
     ```sh
     cd my-wonderful-project
-    charidotella configure ./recordings
+    charidotella init 'recordings/*.es'
     ```
 
     The directory now has the following structure
@@ -67,7 +67,7 @@ It supports Python 3.9, 3.10, and 3.11.
     └── charidotella-configuration.toml
     ```
 
-4. (Optional) Edit `charidotella-coniguration.toml` to change the jobs' parameters
+4. (Optional) Edit `charidotella-configuration.toml` to change the jobs' parameters
 
 5. Run the jobs
 
@@ -96,7 +96,7 @@ It supports Python 3.9, 3.10, and 3.11.
     └── charidotella-configuration.toml
     ```
 
-6. (Optional) Edit `charidotella-coniguration.toml` and run `charidotella run` again (job that have already been completed will be skipped unless `--force` is used)
+6. (Optional) Edit `charidotella-configuration.toml` and run `charidotella run` again (job that have already been completed will be skipped unless `--force` is used)
 
 See `charidotella --help` for a list of other options.
 

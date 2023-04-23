@@ -67,26 +67,24 @@ def main():
         "--version", "-v", action="store_true", help="show the version and exit"
     )
     subparsers = parser.add_subparsers(dest="command")
-    configure_parser = subparsers.add_parser(
-        "configure", help="Generate a configuration file"
+    init_parser = subparsers.add_parser("init", help="Generate a configuration file")
+    init_parser.add_argument(
+        "glob",
+        help="Glob pattern used to search for Event Stream files",
     )
-    configure_parser.add_argument(
-        "directory",
-        help="Directory to scan (recursively) for Event Stream files",
-    )
-    configure_parser.add_argument(
+    init_parser.add_argument(
         "--configuration",
         "-c",
         default="charidotella-configuration.toml",
         help="Render configuration file path",
     )
-    configure_parser.add_argument(
+    init_parser.add_argument(
         "--force",
         "-f",
         action="store_true",
         help="Replace the configuration if it exists",
     )
-    configure_parser.add_argument(
+    init_parser.add_argument(
         "--preserve-names",
         "-p",
         action="store_true",
@@ -315,19 +313,20 @@ def main():
                             configuration[key][generated_entry_name] = generated_entry
                 del configuration[generator_key]
 
-    if args.command == "configure":
+    if args.command == "init":
         configuration_path = pathlib.Path(args.configuration).resolve()
         if not args.force and configuration_path.is_file():
             utilities.error(
                 f'"{configuration_path}" already exists (use --force to override it)'
             )
-        directory = pathlib.Path(args.directory).resolve()
-        if not directory.is_dir():
-            utilities.error(f'"{directory}" does not exist or is not a directory')
-        paths = list(directory.rglob("*.es"))
+        paths = [
+            path.resolve()
+            for path in pathlib.Path(".").rglob(args.glob)
+            if path.is_file() and path.suffix == ".es"
+        ]
         paths.sort(key=lambda path: (path.stem, path.parent))
         if len(paths) == 0:
-            utilities.error(f'no .es files found in "{directory}"')
+            utilities.error(f'no .es files match "{args.glob}"')
         if args.preserve_names:
             names = sorted([path.stem for path in paths])
             if len(names) != len(set(names)):
@@ -347,7 +346,12 @@ def main():
                     if not name in attachments:
                         attachments[name] = []
                     attachments[name].append(
-                        {"source": str(sibling), "target": f"{name}{sibling.suffix}"}
+                        {
+                            "source": str(
+                                sibling.relative_to(configuration_path.parent)
+                            ),
+                            "target": f"{name}{sibling.suffix}",
+                        }
                     )
         jobs = []
         for index, (name, path) in enumerate(zip(names, paths)):
@@ -624,7 +628,12 @@ def main():
             )
             configuration_file.write("\n\n\n# generated name to source file\n")
             toml.dump(
-                {"sources": {name: str(path) for name, path in zip(names, paths)}},
+                {
+                    "sources": {
+                        name: str(path.relative_to(configuration_path.parent))
+                        for name, path in zip(names, paths)
+                    }
+                },
                 configuration_file,
                 encoder=Encoder(),
             )
@@ -772,15 +781,16 @@ def main():
                     ):
                         utilities.info(
                             "⏭ ",
-                            f"skip copy {attachment['source']} → {attachment['target']}",
+                            f"skip copy {pathlib.Path(configuration_path.parent) / attachment['source']} → {attachment['target']}",
                         )
                     else:
                         utilities.info(
                             "🗃 ",
-                            f"copy {attachment['source']} → {attachment['target']}",
+                            f"copy {pathlib.Path(configuration_path.parent) / attachment['source']} → {attachment['target']}",
                         )
                         shutil.copy2(
-                            pathlib.Path(attachment["source"]),
+                            pathlib.Path(configuration_path.parent)
+                            / attachment["source"],
                             utilities.with_suffix(
                                 directory / name / attachment["target"], ".part"
                             ),
@@ -806,7 +816,8 @@ def main():
                 else:
                     utilities.info(filter["icon"], f"apply filter {filter_name}")
                     FILTERS[filter["type"]](
-                        pathlib.Path(configuration["sources"][job["name"]]),
+                        pathlib.Path(configuration_path.parent)
+                        / configuration["sources"][job["name"]],
                         utilities.with_suffix(output_path, ".part"),
                         begin,
                         end,
@@ -836,7 +847,10 @@ def main():
                         suffix=job["name"]
                     ) as temporary_directory_name:
                         temporary_directory = pathlib.Path(temporary_directory_name)
-                        input = pathlib.Path(configuration["sources"][job["name"]])
+                        input = (
+                            pathlib.Path(configuration_path.parent)
+                            / configuration["sources"][job["name"]]
+                        )
                         for index, filter_name in enumerate(job["filters"]):
                             if index == len(job["filters"]) - 1:
                                 output = utilities.with_suffix(output_path, ".part")
