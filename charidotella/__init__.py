@@ -205,7 +205,7 @@ def main():
     def save_parameters(path: pathlib.Path, parameters: dict[str, typing.Any]):
         with open(path.with_suffix(".part"), "w", encoding="utf-8") as file:
             toml.dump(parameters, file)
-        path.with_suffix(".part").rename(path)
+        path.with_suffix(".part").replace(path)
 
     def compare_parameters(a: dict[str, typing.Any], b: dict[str, typing.Any]):
         return json.dumps(a, sort_keys=True, separators=(",", ":")) == json.dumps(
@@ -656,7 +656,7 @@ def main():
                 toml.load(configuration_file),
                 configuration_schema(),
             )
-        utilities.with_suffix(configuration_path, ".part").rename(configuration_path)
+        utilities.with_suffix(configuration_path, ".part").replace(configuration_path)
         sys.exit(0)
 
     if args.command == "run":
@@ -801,7 +801,7 @@ def main():
                         )
                         utilities.with_suffix(
                             directory / name / attachment["target"], ".part"
-                        ).rename(directory / name / attachment["target"])
+                        ).replace(directory / name / attachment["target"])
                     parameters["attachments"][attachment["target"]] = attachment[
                         "source"
                     ]
@@ -827,7 +827,7 @@ def main():
                         end,
                         filter["parameters"],
                     )
-                    utilities.with_suffix(output_path, ".part").rename(output_path)
+                    utilities.with_suffix(output_path, ".part").replace(output_path)
                     parameters["filters"][filter_name] = filter["parameters"]
                     save_parameters(parameters_path, parameters)
             else:
@@ -873,7 +873,7 @@ def main():
                             )
                             input = output
                             parameters["filters"][filter_name] = filter["parameters"]
-                    utilities.with_suffix(output_path, ".part").rename(output_path)
+                    utilities.with_suffix(output_path, ".part").replace(output_path)
                     save_parameters(parameters_path, parameters)
             for task_name in job["tasks"]:
                 task = configuration["tasks"][task_name]
@@ -898,7 +898,7 @@ def main():
                         end,
                         task["parameters"],
                     )
-                    utilities.with_suffix(task_output_path, ".part").rename(
+                    utilities.with_suffix(task_output_path, ".part").replace(
                         task_output_path
                     )
                     parameters["tasks"][task_name] = task["parameters"]

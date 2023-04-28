@@ -76,7 +76,7 @@ def run(
             shutil.copyfile(path, sorted_frames / f"{output_index:>06d}.ppm")
             output_index += 1
         for path in reversed(selected_paths[1:-1]):
-            path.rename(sorted_frames / f"{output_index:>06d}.ppm")
+            path.replace(sorted_frames / f"{output_index:>06d}.ppm")
             output_index += 1
         subprocess.run(
             [
