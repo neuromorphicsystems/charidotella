@@ -115,7 +115,7 @@ setuptools.setup(
         "event_stream",
         "jsonschema",
         "matplotlib",
-        "pillow >= 9.5",
+        "pillow>=9.4",
         "scipy",
         "toml",
     ],
