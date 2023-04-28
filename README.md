@@ -24,11 +24,12 @@ It supports Python 3.9, 3.10, and 3.11.
 
 -   **Windows**
 
-    Run in an elevated Powershell (right-click > Run as Administrator)
-    ```powershell
-    winget install python3 --scope machine
-    winget install ffmpeg --scope machine
-    ```
+    1. Run in an elevated Powershell (right-click > Run as Administrator)
+        ```powershell
+        winget install python3 --scope machine
+        winget install ffmpeg --scope machine
+        ```
+    2. Reboot the machine
 
 ## Get started
 
