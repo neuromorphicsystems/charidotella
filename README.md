@@ -11,7 +11,7 @@ It supports Python 3.9, 3.10, and 3.11.
 -   **Debian / Ubuntu**
 
     ```sh
-    sudo apt install ffmpeg
+    sudo apt install ffmpeg python3 python3-pip vlc
     ```
 
 -   **macOS**
@@ -19,23 +19,38 @@ It supports Python 3.9, 3.10, and 3.11.
     1. Install Homebrew (https://brew.sh)
     2. Run in a terminal
         ```sh
-        brew install ffmpeg
+        brew install ffmpeg python3
         ```
 
 -   **Windows**
-    1. Install Chocolatey (https://chocolatey.org/)
-    2. Open Powershell as administrator and run
-        ```sh
-        choco install -y ffmpeg
-        ```
+
+    Run in an elevated Powershell (right-click > Run as Administrator)
+    ```powershell
+    winget install python3 --scope machine
+    winget install ffmpeg --scope machine
+    ```
 
 ## Get started
 
 1. Install the Python package
 
-    ```sh
-    python3 -m pip install charidotella
-    ```
+    -   **Debian / Ubuntu**
+        ```sh
+        sudo python3 -m pip install charidotella
+        ```
+
+    -   **macOS**
+        ```sh
+        python3 -m pip install charidotella
+        ```
+
+    -   **Windows**
+
+        Run in an elevated Powershell (right-click > Run as Administrator)
+        ```powershell
+        & 'C:\Program Files\Python311\python.exe' -m pip install charidotella
+        ```
+
 
 2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is _.es_)
 

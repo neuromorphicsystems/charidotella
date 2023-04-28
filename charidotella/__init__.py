@@ -198,12 +198,12 @@ def main():
 
     def load_parameters(path: pathlib.Path):
         if path.is_file():
-            with open(path) as file:
+            with open(path, "r", encoding="utf-8") as file:
                 return toml.load(file)
         return None
 
     def save_parameters(path: pathlib.Path, parameters: dict[str, typing.Any]):
-        with open(path.with_suffix(".part"), "w") as file:
+        with open(path.with_suffix(".part"), "w", encoding="utf-8") as file:
             toml.dump(parameters, file)
         path.with_suffix(".part").rename(path)
 
@@ -387,7 +387,9 @@ def main():
                 }
             )
         with open(
-            utilities.with_suffix(configuration_path, ".part"), "w"
+            utilities.with_suffix(configuration_path, ".part"),
+            "w",
+            encoding="utf-8",
         ) as configuration_file:
             configuration_file.write("# output directory\n")
             toml.dump({"directory": "renders"}, configuration_file, encoder=Encoder())
@@ -477,7 +479,7 @@ def main():
                             "icon": "🎬",
                             "frametime": utilities.timestamp_to_timecode(20000),
                             "tau": utilities.timestamp_to_timecode(200000),
-                            "style": "cumulative",
+                            "style": "exponential",
                             "on_color": "#F4C20D",
                             "off_color": "#1E88E5",
                             "idle_color": "#191919",
@@ -646,7 +648,9 @@ def main():
                 encoder=Encoder(),
             )
         with open(
-            utilities.with_suffix(configuration_path, ".part")
+            utilities.with_suffix(configuration_path, ".part"),
+            "r",
+            encoding="utf-8",
         ) as configuration_file:
             jsonschema.validate(
                 toml.load(configuration_file),
@@ -657,7 +661,7 @@ def main():
 
     if args.command == "run":
         configuration_path = pathlib.Path(args.configuration).resolve()
-        with open(configuration_path) as configuration_file:
+        with open(configuration_path, "r", encoding="utf-8") as configuration_file:
             configuration = toml.load(configuration_file)
         jsonschema.validate(configuration, configuration_schema())
         if not "filters" in configuration:
@@ -906,7 +910,7 @@ def main():
 
     if args.command == "resolve":
         configuration_path = pathlib.Path(args.configuration).resolve()
-        with open(configuration_path) as configuration_file:
+        with open(configuration_path, "r", encoding="utf-8") as configuration_file:
             configuration = toml.load(configuration_file)
         jsonschema.validate(configuration, configuration_schema())
         if not "filters" in configuration:
@@ -919,7 +923,7 @@ def main():
             configuration["attachments"] = []
         run_generators(configuration)
         jsonschema.validate(configuration, configuration_schema())
-        with open(pathlib.Path(args.output), "w") as output_file:
+        with open(pathlib.Path(args.output), "w", encoding="utf-8") as output_file:
             json.dump(configuration, output_file, indent=4)
 
 

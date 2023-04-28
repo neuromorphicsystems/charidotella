@@ -89,7 +89,7 @@ exec(open(dirname / "charidotella" / "version.py").read())
 
 setuptools.setup(
     name="charidotella",
-    version=__version__, # type: ignore
+    version=__version__,  # type: ignore
     url="https://github.com/neuromorphicsystems/charidotella",
     author="Alexandre Marcireau",
     author_email="alexandre.marcireau@gmail.com",
@@ -115,6 +115,7 @@ setuptools.setup(
         "event_stream",
         "jsonschema",
         "matplotlib",
+        "pillow >= 9.5",
         "scipy",
         "toml",
     ],
