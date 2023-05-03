@@ -53,6 +53,11 @@ task_run = typing.Callable[
 TASKS: dict[str, tuple[str, task_run]] = {
     "colourtime": (tasks.colourtime.EXTENSION, tasks.colourtime.run),
     "event_rate": (tasks.event_rate.EXTENSION, tasks.event_rate.run),
+    "spatiospectrogram": (
+        tasks.spatiospectrogram.EXTENSION,
+        tasks.spatiospectrogram.run,
+    ),
+    "spectrogram": (tasks.spectrogram.EXTENSION, tasks.spectrogram.run),
     "video": (tasks.video.EXTENSION, tasks.video.run),
     "wiggle": (tasks.wiggle.EXTENSION, tasks.wiggle.run),
 }
@@ -89,6 +94,12 @@ def main():
         "-p",
         action="store_true",
         help="Do not generate new names for the recordings",
+    )
+    init_parser.add_argument(
+        "--spatiospectrograms",
+        "-s",
+        action="store_true",
+        help="Generate spatio-spectrogram tasks",
     )
     run_parser = subparsers.add_parser("run", help="Process a configuration file")
     run_parser.add_argument(
@@ -381,9 +392,11 @@ def main():
                     "tasks": [
                         "colourtime-.+",
                         "event-rate-.+",
+                        "spectrogram",
                         "wiggle-.+",
                         "video-real-time",
-                    ],
+                    ]
+                    + (["spatiospectrogram"] if args.spatiospectrograms else []),
                 }
             )
         with open(
@@ -471,9 +484,63 @@ def main():
             )
 
             configuration_file.write("\n\n# tasks configuration\n\n")
+            tasks = {
+                "spectrogram": {
+                    "type": "spectrogram",
+                    "icon": "🎻",
+                    "tau": utilities.timestamp_to_timecode(100000),
+                    "mode": "all",
+                    "maximum": 10000.0,
+                    "frequencies": 100,
+                    "times": 1000,
+                    "gamma": 0.5,
+                },
+                "video-real-time": {
+                    "type": "video",
+                    "icon": "🎬",
+                    "frametime": utilities.timestamp_to_timecode(20000),
+                    "tau": utilities.timestamp_to_timecode(200000),
+                    "style": "exponential",
+                    "on_color": "#F4C20D",
+                    "off_color": "#1E88E5",
+                    "idle_color": "#191919",
+                    "cumulative_ratio": 0.01,
+                    "timecode": True,
+                    "h264_crf": 15,
+                    "ffmpeg": "ffmpeg",
+                    "scale": 1,
+                },
+            }
             toml.dump(
                 {
                     "tasks": {
+                        "spatiospectrogram": {
+                            "type": "spatiospectrogram",
+                            "icon": "🎸",
+                            "frametime": utilities.timestamp_to_timecode(20000),
+                            "scale": 1,
+                            "tau": utilities.timestamp_to_timecode(100000),
+                            "mode": "all",
+                            "minimum": 10.0,
+                            "maximum": 10000.0,
+                            "frequencies": 100,
+                            "frequency-gamma": 0.5,
+                            "amplitude-gamma": 0.5,
+                            "discard": 0.001,
+                            "timecode": True,
+                            "h264_crf": 15,
+                            "ffmpeg": "ffmpeg",
+                        },
+                        "spectrogram": {
+                            "type": "spectrogram",
+                            "icon": "🎻",
+                            "tau": utilities.timestamp_to_timecode(100000),
+                            "mode": "all",
+                            "maximum": 10000.0,
+                            "frequencies": 100,
+                            "times": 1000,
+                            "gamma": 0.5,
+                        },
                         "video-real-time": {
                             "type": "video",
                             "icon": "🎬",
@@ -488,7 +555,22 @@ def main():
                             "h264_crf": 15,
                             "ffmpeg": "ffmpeg",
                             "scale": 1,
-                        }
+                        },
+                        "video-slow-motion": {
+                            "type": "video",
+                            "icon": "🎬",
+                            "frametime": utilities.timestamp_to_timecode(2000),
+                            "tau": utilities.timestamp_to_timecode(20000),
+                            "style": "exponential",
+                            "on_color": "#F4C20D",
+                            "off_color": "#1E88E5",
+                            "idle_color": "#191919",
+                            "cumulative_ratio": 0.01,
+                            "timecode": True,
+                            "h264_crf": 15,
+                            "ffmpeg": "ffmpeg",
+                            "scale": 1,
+                        },
                     },
                 },
                 configuration_file,
@@ -539,8 +621,8 @@ def main():
                                 "axis_color": "#000000",
                                 "main_grid_color": "#555555",
                                 "secondary_grid_color": "#DDDDDD",
-                                "width": 1920,
-                                "height": 1080,
+                                "width": 1280,
+                                "height": 720,
                             },
                         },
                         {
@@ -556,7 +638,7 @@ def main():
                             "template": {
                                 "name": "wiggle-@suffix",
                                 "type": "wiggle",
-                                "icon": "🌀",
+                                "icon": "👋",
                                 "forward_duration": "@raw(forward_duration)",
                                 "tau_to_frametime_ratio": 3.0,
                                 "style": "cumulative",
@@ -616,9 +698,15 @@ def main():
                                         "tasks": [
                                             "colourtime-.+",
                                             "event-rate-.+",
+                                            "spectrogram",
                                             "wiggle-.+",
                                             "video-real-time",
-                                        ],
+                                        ]
+                                        + (
+                                            ["spatiospectrogram"]
+                                            if args.spatiospectrograms
+                                            else []
+                                        ),
                                     },
                                 }
                             ]

@@ -12,7 +12,7 @@ dirname = pathlib.Path(__file__).resolve().parent
 with open(dirname / "README.md") as file:
     long_description = file.read()
 
-executables = ["es_to_frames", "event_rate", "size"]
+executables = ["es_to_frames", "event_rate", "size", "spatiospectrogram", "spectrogram"]
 
 if not "-h" in sys.argv and not "--help" in sys.argv:
     manifest_lines = [
