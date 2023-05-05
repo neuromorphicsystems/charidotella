@@ -17,7 +17,7 @@ def run(
         str(importlib.resources.files("charidotella").joinpath("assets/spectrogram")),
         str(input),
         str(output),
-        str(output.with_suffix(".json")),
+        str((output.parent / output.stem).with_suffix(".json")),
         f"--begin={begin}",
         f"--end={end}",
         f"--tau={parameters['tau']}",

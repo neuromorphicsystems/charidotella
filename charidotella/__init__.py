@@ -332,7 +332,7 @@ def main():
             )
         paths = [
             path.resolve()
-            for path in pathlib.Path(".").rglob(args.glob)
+            for path in pathlib.Path(".").glob(args.glob)
             if path.is_file() and path.suffix == ".es"
         ]
         paths.sort(key=lambda path: (path.stem, path.parent))
