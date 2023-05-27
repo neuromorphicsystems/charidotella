@@ -34,17 +34,11 @@
                                 "type": "string"
                             },
                             "type": {
-                                "enum": [
-                                    "default"
-                                ],
+                                "enum": ["default"],
                                 "type": "string"
                             }
                         },
-                        "required": [
-                            "type",
-                            "icon",
-                            "suffix"
-                        ],
+                        "required": ["type", "icon", "suffix"],
                         "type": "object"
                     },
                     {
@@ -61,18 +55,11 @@
                                 "type": "integer"
                             },
                             "type": {
-                                "enum": [
-                                    "arbiter_saturation"
-                                ],
+                                "enum": ["arbiter_saturation"],
                                 "type": "string"
                             }
                         },
-                        "required": [
-                            "type",
-                            "icon",
-                            "suffix",
-                            "threshold"
-                        ],
+                        "required": ["type", "icon", "suffix", "threshold"],
                         "type": "object"
                     },
                     {
@@ -89,18 +76,31 @@
                                 "type": "string"
                             },
                             "type": {
-                                "enum": [
-                                    "hot_pixels"
-                                ],
+                                "enum": ["hot_pixels"],
                                 "type": "string"
                             }
                         },
-                        "required": [
-                            "type",
-                            "icon",
-                            "suffix",
-                            "ratio"
-                        ],
+                        "required": ["type", "icon", "suffix", "ratio"],
+                        "type": "object"
+                    },
+                    {
+                        "additionalProperties": false,
+                        "properties": {
+                            "icon": {
+                                "type": "string"
+                            },
+                            "refractory": {
+                                "type": ["string", "number"]
+                            },
+                            "suffix": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "enum": ["refractory"],
+                                "type": "string"
+                            }
+                        },
+                        "required": ["type", "icon", "suffix", "refractory"],
                         "type": "object"
                     },
                     {
@@ -124,9 +124,7 @@
                                 "type": "string"
                             },
                             "type": {
-                                "enum": [
-                                    "transpose"
-                                ],
+                                "enum": ["transpose"],
                                 "type": "string"
                             }
                         },
@@ -152,16 +150,11 @@
                                 "type": "string"
                             }
                         },
-                        "required": [
-                            "name"
-                        ],
+                        "required": ["name"],
                         "type": "object"
                     }
                 },
-                "required": [
-                    "parameters",
-                    "template"
-                ],
+                "required": ["parameters", "template"],
                 "type": "object"
             },
             "type": "array"
@@ -171,16 +164,10 @@
                 "additionalProperties": false,
                 "properties": {
                     "begin": {
-                        "type": [
-                            "string",
-                            "integer"
-                        ]
+                        "type": ["string", "integer"]
                     },
                     "end": {
-                        "type": [
-                            "string",
-                            "integer"
-                        ]
+                        "type": ["string", "integer"]
                     },
                     "filters": {
                         "items": {
@@ -199,12 +186,7 @@
                         "type": "array"
                     }
                 },
-                "required": [
-                    "name",
-                    "begin",
-                    "end",
-                    "filters"
-                ],
+                "required": ["name", "begin", "end", "filters"],
                 "type": "object"
             },
             "type": "array"
@@ -223,10 +205,7 @@
                         "type": "object"
                     }
                 },
-                "required": [
-                    "parameters",
-                    "template"
-                ],
+                "required": ["parameters", "template"],
                 "type": "object"
             },
             "type": "array"
@@ -255,10 +234,7 @@
                                 "type": "string"
                             },
                             "cycle": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "icon": {
                                 "type": "string"
@@ -273,9 +249,7 @@
                                 "type": "integer"
                             },
                             "type": {
-                                "enum": [
-                                    "colourtime"
-                                ],
+                                "enum": ["colourtime"],
                                 "type": "string"
                             }
                         },
@@ -304,10 +278,7 @@
                                 "type": "string"
                             },
                             "long_tau": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "long_tau_color": {
                                 "type": "string"
@@ -319,18 +290,13 @@
                                 "type": "string"
                             },
                             "short_tau": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "short_tau_color": {
                                 "type": "string"
                             },
                             "type": {
-                                "enum": [
-                                    "event_rate"
-                                ],
+                                "enum": ["event_rate"],
                                 "type": "string"
                             },
                             "width": {
@@ -365,10 +331,7 @@
                                 "type": "string"
                             },
                             "frametime": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "h264_crf": {
                                 "maximum": 51,
@@ -406,18 +369,13 @@
                                 "type": "string"
                             },
                             "tau": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "timecode": {
                                 "type": "boolean"
                             },
                             "type": {
-                                "enum": [
-                                    "video"
-                                ],
+                                "enum": ["video"],
                                 "type": "string"
                             }
                         },
@@ -461,12 +419,7 @@
                                 "type": "number"
                             },
                             "mode": {
-                                "enum": [
-                                    "on",
-                                    "off",
-                                    "all",
-                                    "abs"
-                                ],
+                                "enum": ["on", "off", "all", "abs"],
                                 "type": "string"
                             },
                             "region-of-interest": {
@@ -479,19 +432,14 @@
                                 "type": "array"
                             },
                             "tau": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "times": {
                                 "exclusiveMinimum": 0,
                                 "type": "integer"
                             },
                             "type": {
-                                "enum": [
-                                    "spectrogram"
-                                ],
+                                "enum": ["spectrogram"],
                                 "type": "string"
                             }
                         },
@@ -523,10 +471,7 @@
                                 "type": "string"
                             },
                             "frametime": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "frequencies": {
                                 "exclusiveMinimum": 0,
@@ -553,12 +498,7 @@
                                 "type": "number"
                             },
                             "mode": {
-                                "enum": [
-                                    "on",
-                                    "off",
-                                    "all",
-                                    "abs"
-                                ],
+                                "enum": ["on", "off", "all", "abs"],
                                 "type": "string"
                             },
                             "scale": {
@@ -566,18 +506,13 @@
                                 "type": "integer"
                             },
                             "tau": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "timecode": {
                                 "type": "boolean"
                             },
                             "type": {
-                                "enum": [
-                                    "spatiospectrogram"
-                                ],
+                                "enum": ["spatiospectrogram"],
                                 "type": "string"
                             }
                         },
@@ -610,10 +545,7 @@
                                 "type": "string"
                             },
                             "forward_duration": {
-                                "type": [
-                                    "string",
-                                    "integer"
-                                ]
+                                "type": ["string", "integer"]
                             },
                             "icon": {
                                 "type": "string"
@@ -653,9 +585,7 @@
                                 "type": "boolean"
                             },
                             "type": {
-                                "enum": [
-                                    "wiggle"
-                                ],
+                                "enum": ["wiggle"],
                                 "type": "string"
                             }
                         },
@@ -694,24 +624,16 @@
                                 "type": "string"
                             }
                         },
-                        "required": [
-                            "name"
-                        ],
+                        "required": ["name"],
                         "type": "object"
                     }
                 },
-                "required": [
-                    "parameters",
-                    "template"
-                ],
+                "required": ["parameters", "template"],
                 "type": "object"
             },
             "type": "array"
         }
     },
-    "required": [
-        "directory",
-        "sources"
-    ],
+    "required": ["directory", "sources"],
     "type": "object"
 }

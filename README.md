@@ -35,27 +35,53 @@ It supports Python 3.9, 3.10, and 3.11.
 
 ## Get started
 
-1. Install the Python package
+1.  Install the Python package (system-wide or in a virtual environment)
 
-    -   **Debian / Ubuntu**
-        ```sh
-        sudo python3 -m pip install charidotella
-        ```
+    a. System-wide installation
 
-    -   **macOS**
-        ```sh
-        python3 -m pip install charidotella
-        ```
+        -   **Debian / Ubuntu**
+            ```sh
+            sudo python3 -m pip install charidotella
+            ```
 
-    -   **Windows**
+        -   **macOS**
+            ```sh
+            python3 -m pip install charidotella
+            ```
 
-        Run in an elevated Powershell (right-click > Run as Administrator)
-        ```powershell
-        & 'C:\Program Files\Python311\python.exe' -m pip install charidotella
-        ```
+        -   **Windows**
 
+            Run in an elevated Powershell (right-click > Run as Administrator)
+            ```powershell
+            & 'C:\Program Files\Python311\python.exe' -m pip install charidotella
+            ```
 
-2. Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is _.es_)
+    b. Installation in a virtual environment
+
+        -   **Debian / Ubuntu**
+            ```sh
+            python3 -m venv charidotella_venv
+            source charidotella_venv/bin/activate
+            pip install charidotella
+            ```
+
+        -   **macOS**
+            ```sh
+            python3 -m venv charidotella_venv
+            source charidotella_venv/bin/activate
+            pip install charidotella
+            ```
+
+        -   **Windows**
+
+            Run in an elevated Powershell (right-click > Run as Administrator)
+            ```powershell
+            & 'C:\Program Files\Python311\python.exe' -m venv charidotella_venv
+            charidotella_venv\Scripts\Activate.ps1
+            pip install charidotella
+            ```
+
+2.  Create a directory _my-wonderful-project_ with the following structure (the file names do not matter as long as their extension is _.es_)
 
     ```txt
     my-wonderful-project
@@ -66,7 +92,7 @@ It supports Python 3.9, 3.10, and 3.11.
         └── file_n.es
     ```
 
-3. Generate a configuration file
+3.  Generate a configuration file
 
     ```sh
     cd my-wonderful-project
@@ -85,9 +111,9 @@ It supports Python 3.9, 3.10, and 3.11.
     └── charidotella-configuration.toml
     ```
 
-4. (Optional) Edit `charidotella-configuration.toml` to change the jobs' parameters
+4.  (Optional) Edit `charidotella-configuration.toml` to change the jobs' parameters
 
-5. Run the jobs
+5.  Run the jobs
 
     ```
     charidotella run
@@ -114,7 +140,7 @@ It supports Python 3.9, 3.10, and 3.11.
     └── charidotella-configuration.toml
     ```
 
-6. (Optional) Edit `charidotella-configuration.toml` and run `charidotella run` again (job that have already been completed will be skipped unless `--force` is used)
+6.  (Optional) Edit `charidotella-configuration.toml` and run `charidotella run` again (job that have already been completed will be skipped unless `--force` is used)
 
 See `charidotella --help` for a list of other options.
 

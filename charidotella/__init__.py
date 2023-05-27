@@ -36,6 +36,7 @@ FILTERS: dict[str, filter_apply] = {
     "default": filters.default.apply,
     "arbiter_saturation": filters.arbiter_saturation.apply,
     "hot_pixels": filters.hot_pixels.apply,
+    "refractory": filters.refractory.apply,
     "transpose": filters.transpose.apply,
 }
 
@@ -203,7 +204,8 @@ def main():
                 importlib.resources.files("charidotella").joinpath(
                     "assets/configuration-schema.json"
                 )
-            )
+            ),
+            "r",
         ) as configuration_schema_file:
             return json.load(configuration_schema_file)
 
@@ -412,7 +414,7 @@ def main():
             toml.dump(
                 {
                     "filters": {
-                        "default": {"type": "default", "icon": "⏳", "suffix": ""},
+                        "default": {"type": "default", "icon": "🔆", "suffix": ""},
                     }
                 },
                 configuration_file,
@@ -446,6 +448,24 @@ def main():
                                 "icon": "🌶",
                                 "suffix": "hp@ratio",
                                 "ratio": "@raw(ratio)",
+                            },
+                        },
+                        {
+                            "parameters": {
+                                "suffix": [
+                                    10**exponent for exponent in (0, 1, 2, 3, 4, 5, 6)
+                                ],
+                                "refractory": [
+                                    utilities.timestamp_to_timecode(10**exponent)
+                                    for exponent in (0, 1, 2, 3, 4, 5, 6)
+                                ],
+                            },
+                            "template": {
+                                "name": "refractory-@suffix",
+                                "type": "refractory",
+                                "icon": "⏳",
+                                "suffix": "rf@suffix",
+                                "refractory": "@refractory",
                             },
                         },
                         {
