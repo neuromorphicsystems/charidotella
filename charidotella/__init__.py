@@ -91,10 +91,10 @@ def main():
         help="Replace the configuration if it exists",
     )
     init_parser.add_argument(
-        "--preserve-names",
-        "-p",
+        "--generate-names",
+        "-g",
         action="store_true",
-        help="Do not generate new names for the recordings",
+        help="Generate new names (adjective + animal) for the recordings",
     )
     init_parser.add_argument(
         "--spatiospectrograms",
@@ -340,7 +340,9 @@ def main():
         paths.sort(key=lambda path: (path.stem, path.parent))
         if len(paths) == 0:
             utilities.error(f'no .es files match "{args.glob}"')
-        if args.preserve_names:
+        if args.generate_names:
+            names = animals.generate_names(len(paths))
+        else:
             names = sorted([path.stem for path in paths])
             if len(names) != len(set(names)):
                 name_to_path: dict[str, pathlib.Path] = {}
@@ -350,8 +352,6 @@ def main():
                             f'two files have the same name ("{name_to_path[path.stem]}" and "{path}"), rename one or do *not* use the flag --preserve-name'
                         )
                     name_to_path[path.stem] = path
-        else:
-            names = animals.generate_names(len(paths))
         attachments: dict[str, list[dict[str, str]]] = {}
         for name, path in zip(names, paths):
             for sibling in path.parent.iterdir():
@@ -561,7 +561,7 @@ def main():
                             "times": 1000,
                             "gamma": 0.5,
                         },
-                        "video-real-time": {
+                        "video-1x": {
                             "type": "video",
                             "icon": "🎬",
                             "frametime": utilities.timestamp_to_timecode(20000),
@@ -576,7 +576,7 @@ def main():
                             "ffmpeg": "ffmpeg",
                             "scale": 1,
                         },
-                        "video-slow-motion": {
+                        "video-0.1x": {
                             "type": "video",
                             "icon": "🎬",
                             "frametime": utilities.timestamp_to_timecode(2000),
@@ -588,6 +588,23 @@ def main():
                             "cumulative_ratio": 0.01,
                             "timecode": True,
                             "h264_crf": 15,
+                            "ffmpeg": "ffmpeg",
+                            "scale": 1,
+                        },
+                        "wiggle": {
+                            "type": "wiggle",
+                            "icon": "👋",
+                            "forward_duration": utilities.timestamp_to_timecode(
+                                1000000
+                            ),
+                            "tau_to_frametime_ratio": 3.0,
+                            "style": "cumulative",
+                            "idle_color": "#191919",
+                            "on_color": "#F4C20D",
+                            "off_color": "#1E88E5",
+                            "idle_color": "#191919",
+                            "cumulative_ratio": 0.01,
+                            "timecode": True,
                             "ffmpeg": "ffmpeg",
                             "scale": 1,
                         },
@@ -620,14 +637,14 @@ def main():
                         },
                         {
                             "parameters": {
-                                "suffix": ["100000-10000", "1000-100"],
+                                "suffix": ["100000-10000", "10000-1000"],
                                 "long_tau": [
                                     utilities.timestamp_to_timecode(100000),
-                                    utilities.timestamp_to_timecode(1000),
+                                    utilities.timestamp_to_timecode(10000),
                                 ],
                                 "short_tau": [
                                     utilities.timestamp_to_timecode(10000),
-                                    utilities.timestamp_to_timecode(100),
+                                    utilities.timestamp_to_timecode(1000),
                                 ],
                             },
                             "template": {
@@ -643,33 +660,6 @@ def main():
                                 "secondary_grid_color": "#DDDDDD",
                                 "width": 1280,
                                 "height": 720,
-                            },
-                        },
-                        {
-                            "parameters": {
-                                "suffix": ["4s", "2s", "1s", "0.5s"],
-                                "forward_duration": [
-                                    utilities.timestamp_to_timecode(2000000),
-                                    utilities.timestamp_to_timecode(1000000),
-                                    utilities.timestamp_to_timecode(500000),
-                                    utilities.timestamp_to_timecode(250000),
-                                ],
-                            },
-                            "template": {
-                                "name": "wiggle-@suffix",
-                                "type": "wiggle",
-                                "icon": "👋",
-                                "forward_duration": "@raw(forward_duration)",
-                                "tau_to_frametime_ratio": 3.0,
-                                "style": "cumulative",
-                                "idle_color": "#191919",
-                                "on_color": "#F4C20D",
-                                "off_color": "#1E88E5",
-                                "idle_color": "#191919",
-                                "cumulative_ratio": 0.01,
-                                "timecode": True,
-                                "ffmpeg": "ffmpeg",
-                                "scale": 1,
                             },
                         },
                     ]
@@ -719,8 +709,8 @@ def main():
                                             "colourtime-.+",
                                             "event-rate-.+",
                                             "spectrogram",
-                                            "wiggle-.+",
-                                            "video-real-time",
+                                            "wiggle",
+                                            "video-1x",
                                         ]
                                         + (
                                             ["spatiospectrogram"]

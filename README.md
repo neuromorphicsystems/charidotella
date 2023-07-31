@@ -129,14 +129,14 @@ It supports Python 3.9, 3.10, and 3.11.
     │   ├── ...
     │   └── file_n.es
     ├── renders
-    │   ├── adjective-animal-1
+    │   ├── file_1
     │   │    ├── filtered-recording.es
     │   │    ├── rendered-file-1.es
     │   │    ├── ...
     │   │    └── rendered-file-m.es
-    │   ├── adjective-animal-2
+    │   ├── file_2
     │   ├── ...
-    │   └── adjective-animal-n
+    │   └── file_n
     └── charidotella-configuration.toml
     ```
 
