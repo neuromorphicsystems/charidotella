@@ -75,7 +75,9 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     init_parser = subparsers.add_parser("init", help="Generate a configuration file")
     init_parser.add_argument(
-        "glob",
+        "--glob",
+        "-g",
+        default="recordings/*.es",
         help="Glob pattern used to search for Event Stream files",
     )
     init_parser.add_argument(
@@ -395,8 +397,8 @@ def main():
                         "colourtime-.+",
                         "event-rate-.+",
                         "spectrogram",
-                        "wiggle-.+",
-                        "video-real-time",
+                        "wiggle",
+                        "video-1x",
                     ]
                     + (["spatiospectrogram"] if args.spatiospectrograms else []),
                 }

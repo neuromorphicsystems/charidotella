@@ -96,7 +96,7 @@ It supports Python 3.9, 3.10, and 3.11.
 
     ```sh
     cd my-wonderful-project
-    charidotella init 'recordings/*.es'
+    charidotella init
     ```
 
     The directory now has the following structure
