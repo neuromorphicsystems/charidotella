@@ -93,8 +93,8 @@ def main():
         help="Replace the configuration if it exists",
     )
     init_parser.add_argument(
-        "--generate-names",
-        "-g",
+        "--new-names",
+        "-n",
         action="store_true",
         help="Generate new names (adjective + animal) for the recordings",
     )
