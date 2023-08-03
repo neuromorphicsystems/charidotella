@@ -342,7 +342,7 @@ def main():
         paths.sort(key=lambda path: (path.stem, path.parent))
         if len(paths) == 0:
             utilities.error(f'no .es files match "{args.glob}"')
-        if args.generate_names:
+        if args.new_names:
             names = animals.generate_names(len(paths))
         else:
             names = sorted([path.stem for path in paths])
