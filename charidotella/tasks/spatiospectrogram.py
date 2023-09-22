@@ -88,8 +88,8 @@ def run(
     frame_size = width * height * 3
 
     def cleanup():
-        if es_to_frames is not None:
-            es_to_frames.kill()
+        if spatiospectrogram is not None:
+            spatiospectrogram.kill()
         if ffmpeg is not None:
             ffmpeg.kill()
 
@@ -101,7 +101,7 @@ def run(
         ffmpeg.stdin.write(frame)
     ffmpeg.stdin.close()
     spatiospectrogram.wait()
-    es_to_frames = None
+    spatiospectrogram = None
     ffmpeg.wait()
     ffmpeg = None
     atexit.unregister(cleanup)
