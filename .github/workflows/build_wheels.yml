@@ -10,7 +10,6 @@ on:
 
 env:
   CIBW_ARCHS_MACOS: x86_64 arm64
-  CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
   CIBW_SKIP: cp36-* cp37-* pp* *i686
 
 jobs:
@@ -102,6 +101,6 @@ jobs:
             name: dist
             path: dist
       - run: mv wheelhouse/* dist/
-      - uses: pypa/gh-action-pypi-publish@v1.5.0
+      - uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
