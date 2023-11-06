@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import importlib.resources
 import pathlib
 import subprocess
 import typing
+
+from .. import utilities
 
 EXTENSION = ".svg"
 
@@ -15,9 +19,7 @@ def run(
 ):
     subprocess.run(
         [
-            str(
-                importlib.resources.files("charidotella").joinpath("assets/event_rate")
-            ),
+            str(utilities.asset_path("event_rate")),
             str(input),
             str(output),
             f"--begin={begin}",

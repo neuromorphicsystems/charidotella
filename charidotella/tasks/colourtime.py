@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pathlib
 import typing
 
@@ -34,7 +36,7 @@ def run(
             colormap=matplotlib.colormaps[parameters["colormap"]],  # type: ignore
             time_mapping=time_mapping,
             alpha=parameters["alpha"],
-            background_colour=matplotlib.colors.to_rgba(parameters["background_color"]),
+            background_colour=matplotlib.colors.to_rgba(parameters["background_color"]),  # type: ignore
         )
         image.resize(
             size=(

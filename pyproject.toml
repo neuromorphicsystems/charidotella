@@ -7,8 +7,8 @@ extend-exclude = "command_line_tools"
 
 [tool.pyright]
 typeCheckingMode = "basic"
-exclude = ["command_line_tools"]
+exclude = ["command_line_tools", ".venv"]
 
 [tool.isort]
 profile = "black"
-skip = "command_line_tools"
+extend_skip = "command_line_tools, .venv"

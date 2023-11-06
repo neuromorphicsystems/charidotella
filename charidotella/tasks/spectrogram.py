@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import importlib.resources
 import pathlib
 import subprocess
 import typing
+
+from .. import utilities
 
 EXTENSION = ".png"
 
@@ -14,7 +18,7 @@ def run(
     parameters: dict[str, typing.Any],
 ):
     arguments = [
-        str(importlib.resources.files("charidotella").joinpath("assets/spectrogram")),
+        str(utilities.asset_path("spectrogram")),
         str(input),
         str(output),
         str((output.parent / output.stem).with_suffix(".json")),

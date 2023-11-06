@@ -1,4 +1,5 @@
 import argparse
+import importlib.resources
 import os
 import pathlib
 import re
@@ -74,3 +75,9 @@ def timecode(value: str) -> int:
         else:
             result += round(float("0." + fraction_string) * 1e6)
     return result
+
+
+def asset_path(name: str) -> pathlib.Path:
+    if sys.version_info[0:3] < (3, 9, 0):
+        return importlib.resources.path("charidotella", f"assets/{name}").__enter__()  # type: ignore
+    return importlib.resources.files("charidotella").joinpath(f"assets/{name}")  # type: ignore

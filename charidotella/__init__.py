@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import copy
 import functools
@@ -27,7 +29,7 @@ filter_apply = typing.Callable[
         pathlib.Path,
         int,
         int,
-        dict[str, typing.Any],
+        "dict[str, typing.Any]",
     ],
     None,
 ]
@@ -46,7 +48,7 @@ task_run = typing.Callable[
         pathlib.Path,
         int,
         int,
-        dict[str, typing.Any],
+        "dict[str, typing.Any]",
     ],
     None,
 ]
@@ -202,11 +204,7 @@ def main():
     @functools.lru_cache(maxsize=None)
     def configuration_schema():
         with open(
-            str(
-                importlib.resources.files("charidotella").joinpath(
-                    "assets/configuration-schema.json"
-                )
-            ),
+            str(utilities.asset_path("configuration-schema.json")),
             "r",
         ) as configuration_schema_file:
             return json.load(configuration_schema_file)

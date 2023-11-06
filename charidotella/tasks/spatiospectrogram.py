@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import atexit
 import importlib.resources
 import pathlib
 import subprocess
 import typing
+
+from .. import utilities
 
 EXTENSION = ".mp4"
 
@@ -18,7 +22,7 @@ def run(
         int(value)
         for value in subprocess.run(
             [
-                str(importlib.resources.files("charidotella").joinpath("assets/size")),
+                str(utilities.asset_path("size")),
                 str(input),
             ],
             check=True,
@@ -28,11 +32,7 @@ def run(
     width *= parameters["scale"]
     height *= parameters["scale"]
     spatiospectrogram_arguments = [
-        str(
-            importlib.resources.files("charidotella").joinpath(
-                "assets/spatiospectrogram"
-            )
-        ),
+        str(utilities.asset_path("spatiospectrogram")),
         f"--input={input}",
         f"--begin={begin}",
         f"--end={end}",

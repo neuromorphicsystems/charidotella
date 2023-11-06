@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib.resources
 import pathlib
 import shutil
@@ -29,11 +31,7 @@ def run(
         base_frames = temporary_directory / "base_frames"
         base_frames.mkdir(exist_ok=True)
         es_to_frames_arguments = [
-            str(
-                importlib.resources.files("charidotella").joinpath(
-                    "assets/es_to_frames"
-                )
-            ),
+            str(utilities.asset_path("es_to_frames")),
             f"--input={input}",
             f"--output={base_frames}",
             f"--begin={begin}",
