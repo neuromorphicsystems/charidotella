@@ -1,23 +1,6 @@
 {
     "additionalProperties": false,
     "properties": {
-        "attachments": {
-            "additionalProperties": {
-                "items": {
-                    "properties": {
-                        "source": {
-                            "type": "string"
-                        },
-                        "target": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "type": "array"
-            },
-            "type": "object"
-        },
         "directory": {
             "type": "string"
         },

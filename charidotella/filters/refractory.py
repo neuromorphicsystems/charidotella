@@ -6,7 +6,7 @@ import typing
 import event_stream
 import numpy
 
-from .. import utilities
+from .. import formats, utilities
 
 
 def apply(
@@ -16,7 +16,7 @@ def apply(
     end: int,
     parameters: dict[str, typing.Any],
 ) -> None:
-    with event_stream.Decoder(input) as decoder:
+    with formats.Decoder(input) as decoder:
         refractory = numpy.uint64(utilities.timecode(parameters["refractory"]))
         threshold_t = numpy.zeros((decoder.width, decoder.height), dtype=numpy.uint64)
         with event_stream.Encoder(

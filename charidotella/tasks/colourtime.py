@@ -9,6 +9,8 @@ import matplotlib
 import matplotlib.colors
 import PIL.Image
 
+from .. import formats
+
 EXTENSION = ".png"
 
 
@@ -26,13 +28,13 @@ def run(
         )
     else:
         time_mapping = colourtime.generate_linear_time_mapping(begin=begin, end=end)
-    with event_stream.Decoder(input) as decoder:
+    with formats.Decoder(input) as decoder:
         image = colourtime.convert(
             begin=begin,
             end=end,
             width=decoder.width,
             height=decoder.height,
-            decoder=decoder,
+            decoder=decoder,  # type: ignore
             colormap=matplotlib.colormaps[parameters["colormap"]],  # type: ignore
             time_mapping=time_mapping,
             alpha=parameters["alpha"],

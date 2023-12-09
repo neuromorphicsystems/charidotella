@@ -3,22 +3,20 @@ from __future__ import annotations
 import argparse
 import copy
 import functools
-import importlib.resources
 import json
 import pathlib
 import re
-import shutil
 import sys
 import tempfile
 import typing
 import uuid
 
-import event_stream
 import jsonschema
 import toml
 
 from . import animals as animals
 from . import filters as filters
+from . import formats as formats
 from . import tasks as tasks
 from . import utilities as utilities
 from .version import __version__ as __version__
@@ -79,8 +77,9 @@ def main():
     init_parser.add_argument(
         "--glob",
         "-g",
-        default="recordings/*.es",
-        help="Glob pattern used to search for Event Stream files",
+        nargs="*",
+        default=["recordings/*.es", "recordings/*.aedat4"],
+        help="Glob pattern used to search for Event Stream and AEDAT4 files",
     )
     init_parser.add_argument(
         "--configuration",
@@ -332,14 +331,14 @@ def main():
             utilities.error(
                 f'"{configuration_path}" already exists (use --force to override it)'
             )
-        paths = [
-            path.resolve()
-            for path in pathlib.Path(".").glob(args.glob)
-            if path.is_file() and path.suffix == ".es"
-        ]
+        paths = []
+        for glob in args.glob:
+            for path in pathlib.Path(".").glob(glob):
+                if path.is_file():
+                    paths.append(path.resolve())
         paths.sort(key=lambda path: (path.stem, path.parent))
         if len(paths) == 0:
-            utilities.error(f'no .es files match "{args.glob}"')
+            utilities.error(f'no files match "{args.glob}"')
         if args.new_names:
             names = animals.generate_names(len(paths))
         else:
@@ -349,23 +348,9 @@ def main():
                 for path in paths:
                     if path.stem in name_to_path:
                         utilities.error(
-                            f'two files have the same name ("{name_to_path[path.stem]}" and "{path}"), rename one or do *not* use the flag --preserve-name'
+                            f'two files have the same name ("{name_to_path[path.stem]}" and "{path}"), rename one or do use the flag --new-names'
                         )
                     name_to_path[path.stem] = path
-        attachments: dict[str, list[dict[str, str]]] = {}
-        for name, path in zip(names, paths):
-            for sibling in path.parent.iterdir():
-                if sibling != path and sibling.stem == path.stem:
-                    if not name in attachments:
-                        attachments[name] = []
-                    attachments[name].append(
-                        {
-                            "source": str(
-                                sibling.relative_to(configuration_path.parent)
-                            ),
-                            "target": f"{name}{sibling.suffix}",
-                        }
-                    )
         jobs = []
         for index, (name, path) in enumerate(zip(names, paths)):
             utilities.info(
@@ -374,7 +359,7 @@ def main():
             )
             begin: typing.Optional[int] = None
             end: typing.Optional[int] = None
-            with event_stream.Decoder(path) as decoder:
+            with formats.Decoder(path) as decoder:
                 for packet in decoder:
                     if begin is None:
                         begin = int(packet["t"][0])
@@ -737,14 +722,6 @@ def main():
                 configuration_file,
                 encoder=Encoder(),
             )
-            configuration_file.write(
-                "\n\n# attachments are copied in target directories, algonside generated files \n"
-            )
-            toml.dump(
-                {"attachments": attachments},
-                configuration_file,
-                encoder=Encoder(),
-            )
         with open(
             utilities.with_suffix(configuration_path, ".part"),
             "r",
@@ -768,8 +745,6 @@ def main():
             configuration["tasks"] = {}
         if not "jobs" in configuration:
             configuration["jobs"] = []
-        if not "attachments" in configuration:
-            configuration["attachments"] = {}
         run_generators(configuration)
         jsonschema.validate(configuration, configuration_schema())
         if len(configuration["filters"]) == 0:
@@ -807,12 +782,6 @@ def main():
             except Exception as exception:
                 utilities.error(
                     f"parsing \"end\" ({job['end']}) in \"{job['name']}\" failed ({exception})"
-                )
-        for name, attachment in configuration["attachments"].items():
-            targets = [file["target"] for file in attachment]
-            if len(targets) != len(set(targets)):
-                utilities.error(
-                    f'two or more attachments share the same target in "{name}"'
                 )
         configuration["filters"] = {
             name: {
@@ -872,37 +841,6 @@ def main():
                 parameters["filters"] = {}
             if not "tasks" in parameters:
                 parameters["tasks"] = {}
-            if not "attachments" in parameters:
-                parameters["attachments"] = {}
-            if job["name"] in configuration["attachments"]:
-                for attachment in configuration["attachments"][job["name"]]:
-                    if (
-                        not args.force
-                        and attachment["target"] in parameters["attachments"]
-                        and (directory / name / attachment["target"]).is_file()
-                    ):
-                        utilities.info(
-                            "⏭ ",
-                            f"skip copy {pathlib.Path(configuration_path.parent) / attachment['source']} → {attachment['target']}",
-                        )
-                    else:
-                        utilities.info(
-                            "🗃 ",
-                            f"copy {pathlib.Path(configuration_path.parent) / attachment['source']} → {attachment['target']}",
-                        )
-                        shutil.copy2(
-                            pathlib.Path(configuration_path.parent)
-                            / attachment["source"],
-                            utilities.with_suffix(
-                                directory / name / attachment["target"], ".part"
-                            ),
-                        )
-                        utilities.with_suffix(
-                            directory / name / attachment["target"], ".part"
-                        ).replace(directory / name / attachment["target"])
-                    parameters["attachments"][attachment["target"]] = attachment[
-                        "source"
-                    ]
             if len(job["filters"]) == 1:
                 filter_name = job["filters"][0]
                 filter = configuration["filters"][filter_name]
@@ -1017,8 +955,6 @@ def main():
             configuration["tasks"] = {}
         if not "jobs" in configuration:
             configuration["jobs"] = []
-        if not "attachments" in configuration:
-            configuration["attachments"] = []
         run_generators(configuration)
         jsonschema.validate(configuration, configuration_schema())
         with open(pathlib.Path(args.output), "w", encoding="utf-8") as output_file:

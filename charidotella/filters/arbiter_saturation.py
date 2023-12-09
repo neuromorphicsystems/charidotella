@@ -6,6 +6,8 @@ import typing
 import event_stream
 import numpy
 
+from .. import formats
+
 
 def consume_packets(
     events_packets: list[numpy.ndarray],
@@ -53,7 +55,7 @@ def apply(
     parameters: dict[str, typing.Any],
 ) -> None:
     events_packets = []
-    with event_stream.Decoder(input) as decoder:
+    with formats.Decoder(input) as decoder:
         with event_stream.Encoder(
             output,
             "dvs",

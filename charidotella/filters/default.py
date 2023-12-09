@@ -6,6 +6,8 @@ import typing
 import event_stream
 import numpy
 
+from .. import formats
+
 
 def apply(
     input: pathlib.Path,
@@ -14,7 +16,7 @@ def apply(
     end: int,
     parameters: dict[str, typing.Any],
 ) -> None:
-    with event_stream.Decoder(input) as decoder:
+    with formats.Decoder(input) as decoder:
         with event_stream.Encoder(
             output,
             "dvs",

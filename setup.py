@@ -112,6 +112,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"": ["charidotella/assets/*"]},
     install_requires=[
+        "aedat",
         "colourtime",
         "coolname",
         "event_stream",

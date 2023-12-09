@@ -7,6 +7,8 @@ import event_stream
 import numpy
 import scipy.ndimage
 
+from .. import formats
+
 
 def apply(
     input: pathlib.Path,
@@ -15,7 +17,8 @@ def apply(
     end: int,
     parameters: dict[str, typing.Any],
 ) -> None:
-    with event_stream.Decoder(input) as decoder:
+    count = None
+    with formats.Decoder(input) as decoder:
         count = numpy.zeros((decoder.width, decoder.height), dtype=numpy.uint64)
         for packet in decoder:
             if packet["t"][-1] < begin:
@@ -33,6 +36,7 @@ def apply(
             else:
                 events = packet
             numpy.add.at(count, (events["x"], events["y"]), 1)
+    assert count is not None
     shifted: list[numpy.ndarray] = []
     for x, y in ((1, 0), (0, 1), (1, 2), (2, 1)):
         kernel = numpy.zeros((3, 3))
@@ -47,7 +51,7 @@ def apply(
         )
     ratios = numpy.divide(count, numpy.maximum.reduce(shifted) + 1.0)
     mask = ratios < parameters["ratio"]
-    with event_stream.Decoder(input) as decoder:
+    with formats.Decoder(input) as decoder:
         with event_stream.Encoder(
             output,
             "dvs",
