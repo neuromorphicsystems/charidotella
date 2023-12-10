@@ -582,6 +582,7 @@ def main():
                             "forward_duration": utilities.timestamp_to_timecode(
                                 1000000
                             ),
+                            "rewind": True,
                             "tau_to_frametime_ratio": 3.0,
                             "style": "cumulative",
                             "idle_color": "#191919",

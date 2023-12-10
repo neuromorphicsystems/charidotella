@@ -55,27 +55,34 @@ def run(
         )
         sorted_frames = temporary_directory / "sorted_frames"
         sorted_frames.mkdir(exist_ok=True)
-        paths: list[pathlib.Path] = []
-        for path in sorted(base_frames.iterdir()):
-            if path.suffix == ".ppm":
-                paths.append(path)
-        selected_paths: list[pathlib.Path] = []
-        if len(paths) >= round(parameters["tau_to_frametime_ratio"]) + 2:
-            for index, path in enumerate(paths):
-                if (
-                    index >= round(parameters["tau_to_frametime_ratio"])
-                    and index % 2 == 1
-                ):
-                    selected_paths.append(path)
+        if parameters["rewind"]:
+            paths: list[pathlib.Path] = []
+            for path in sorted(base_frames.iterdir()):
+                if path.suffix == ".ppm":
+                    paths.append(path)
+            selected_paths: list[pathlib.Path] = []
+            if len(paths) >= round(parameters["tau_to_frametime_ratio"]) + 2:
+                for index, path in enumerate(paths):
+                    if (
+                        index >= round(parameters["tau_to_frametime_ratio"])
+                        and index % 2 == 1
+                    ):
+                        selected_paths.append(path)
+            else:
+                selected_paths = paths
+            output_index = 0
+            for path in selected_paths:
+                shutil.copyfile(path, sorted_frames / f"{output_index:>06d}.ppm")
+                output_index += 1
+            for path in reversed(selected_paths[1:-1]):
+                path.replace(sorted_frames / f"{output_index:>06d}.ppm")
+                output_index += 1
         else:
-            selected_paths = paths
-        output_index = 0
-        for path in selected_paths:
-            shutil.copyfile(path, sorted_frames / f"{output_index:>06d}.ppm")
-            output_index += 1
-        for path in reversed(selected_paths[1:-1]):
-            path.replace(sorted_frames / f"{output_index:>06d}.ppm")
-            output_index += 1
+            output_index = 0
+            for path in sorted(base_frames.iterdir()):
+                if path.suffix == ".ppm":
+                    shutil.copyfile(path, sorted_frames / f"{output_index:>06d}.ppm")
+                    output_index += 1
         subprocess.run(
             [
                 parameters["ffmpeg"],

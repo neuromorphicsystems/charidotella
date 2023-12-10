@@ -530,6 +530,9 @@
                             "forward_duration": {
                                 "type": ["string", "integer"]
                             },
+                            "rewind": {
+                                "type": ["boolean"]
+                            },
                             "icon": {
                                 "type": "string"
                             },
@@ -576,6 +579,7 @@
                             "type",
                             "icon",
                             "forward_duration",
+                            "rewind",
                             "tau_to_frametime_ratio",
                             "style",
                             "on_color",
