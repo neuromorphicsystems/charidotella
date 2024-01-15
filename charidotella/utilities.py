@@ -79,5 +79,5 @@ def timecode(value: str) -> int:
 
 def asset_path(name: str) -> pathlib.Path:
     if sys.version_info[0:3] < (3, 9, 0):
-        return importlib.resources.path("charidotella", f"assets/{name}").__enter__()  # type: ignore
+        return importlib.resources.path("charidotella", "assets").__enter__() / name  # type: ignore
     return importlib.resources.files("charidotella").joinpath(f"assets/{name}")  # type: ignore
